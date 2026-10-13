@@ -1,12 +1,12 @@
 # Blueprint de Render: crea la API y su base de datos PostgreSQL.
-# Está en la raíz del repositorio; el código del backend vive en hilo/backend.
+# Está en la raíz del repositorio; el código del backend vive en backend.
 # Docs: https://render.com/docs/blueprint-spec
 services:
   - type: web
     name: hilo-circular-api
     runtime: node
     plan: free
-    rootDir: hilo/backend
+    rootDir: backend
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /api/salud

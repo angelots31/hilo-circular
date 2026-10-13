@@ -5,7 +5,7 @@ moderación. **Node.js + Express + PostgreSQL**, imágenes en Cloudinary y
 tokens JWT.
 
 ```
-hilo/backend/
+backend/
 ├── src/
 │   ├── index.js          # arranque del servidor
 │   ├── app.js            # Express: CORS, middlewares y rutas
@@ -68,11 +68,9 @@ Cuentas demo (contraseña `demo123`):
 | Cliente | `valentina@hilocircular.co` |
 | Admin   | `admin@hilocircular.co`     |
 
-Desde la raíz del repositorio: `npm run dev:api` o `npm run demo:api`.
-
 ---
 
-## 3. Variables de entorno (`hilo/backend/.env`)
+## 3. Variables de entorno (`backend/.env`)
 
 | Variable | Descripción |
 | -------- | ----------- |
@@ -120,8 +118,6 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 npm test        # valida esquema y datos contra un Postgres en memoria
 ```
 
-Desde la raíz del repositorio: `npm test`.
-
 ---
 
 ## 6. Despliegue
@@ -130,19 +126,19 @@ Desde la raíz del repositorio: `npm test`.
 
 1. Sube el repositorio a GitHub.
 2. En Render, **New → Blueprint** y selecciona el repo. El `render.yaml` está en
-   la raíz del repositorio con `rootDir: hilo/backend`; crea el servicio
+   la raíz del repositorio con `rootDir: backend`; crea el servicio
    `hilo-circular-api` y la base `hilo-circular-db`.
 3. En las variables de entorno del servicio, completa las claves de Cloudinary y
    ajusta `CORS_ORIGIN` con la URL de Vercel.
 4. Cuando termine el primer deploy, ejecuta el script de base de datos una vez.
-   En tu máquina, apuntando al `DATABASE_URL` de Render:
+   En tu máquina, apuntando al `DATABASE_URL` de Render (usa la *External Database URL*; la Internal solo funciona dentro de Render):
 
    ```bash
-   cd hilo/backend
+   cd backend
    DATABASE_URL="<cadena de Render>" PGSSL=true npm run db:setup
    ```
 
-El frontend se despliega en Vercel (ver `hilo/frontend/README.md`).
+El frontend se despliega en Vercel (ver `frontend/README.md`).
 
 > **Nota:** el plan gratuito de Render suspende el servicio tras ~15 min de
 > inactividad; la primera petición puede tardar unos segundos en despertarlo.

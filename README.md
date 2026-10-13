@@ -3,75 +3,89 @@
 Marketplace de intercambio de ropa en **Medellín**: publica prendas, propone
 intercambios, sigue los envíos y modera la comunidad.
 
-- **Frontend:** React + Vite (`hilo/frontend`), desplegado en Vercel.
-- **Backend:** Node.js + Express + PostgreSQL (`hilo/backend`), desplegado en Render.
+- **Frontend:** React + Vite (`frontend`), desplegado en Vercel.
+- **Backend:** Node.js + Express + PostgreSQL (`backend`), desplegado en Render.
 - **Imágenes:** Cloudinary (el navegador sube directo con firma del backend).
 
 ```
-.
+hilo/                     # raíz del repositorio
 ├── .gitignore / .gitattributes
-├── package.json          # scripts de la raíz (dev, test, build…)
 ├── README.md             # este archivo
-├── render.yaml           # blueprint de Render: API + PostgreSQL (rootDir: hilo/backend)
-└── hilo/
-    ├── backend/          # API Express: src/, sql/, scripts/, test/
-    │   └── README.md     # endpoints, variables de entorno, despliegue
-    └── frontend/         # SPA React + Vite: src/, public/, vercel.json
-        └── README.md     # ejecución local, conexión, Vercel
+├── render.yaml           # blueprint de Render: API + PostgreSQL (rootDir: backend)
+├── backend/              # API Express: src/, sql/, scripts/, test/
+│   └── README.md         # endpoints, variables de entorno, despliegue
+└── frontend/             # SPA React + Vite: src/, public/, vercel.json
+    └── README.md         # ejecución local, conexión, Vercel
 ```
+
+No hay `package.json` en la raíz: el backend y el frontend se instalan y se
+ejecutan por separado, cada uno en su carpeta.
 
 ---
 
 ## Requisitos
 
 - Node.js 20 o superior y npm
-- Para datos persistentes: una base PostgreSQL (local, Render, Tiger Cloud, Neon…)
+- Para datos persistentes: una base PostgreSQL (local, Render, Neon…)
 - Para las imágenes: cuenta gratuita en [Cloudinary](https://cloudinary.com)
 
 ---
 
 ## Ejecutar en local
 
-```bash
-npm install        # instala raíz + backend + frontend
-npm run demo       # API con datos en memoria (:4000) + web (:5173)
-```
+Abre dos terminales.
 
-Abre <http://localhost:5173>. Con `npm run demo` no necesitas PostgreSQL: la API
-corre con `pg-mem` y los datos de ejemplo se reinician al cerrar.
-
-Si ya tienes PostgreSQL:
+**Terminal 1 · backend**
 
 ```bash
-npm run db:setup   # crea las tablas y carga el seed (usa hilo/backend/.env)
-npm run dev        # API real (:4000) + web (:5173)
+cd backend
+npm install
+npm run demo        # API con datos en memoria en http://localhost:4000
 ```
 
-### Scripts de la raíz
+**Terminal 2 · frontend**
 
-| Script | Qué hace |
-| ------ | -------- |
-| `npm run dev` | Backend (Postgres real) + frontend a la vez |
-| `npm run demo` | Backend (demo en memoria) + frontend a la vez |
-| `npm run dev:api` / `demo:api` | Solo la API |
-| `npm run dev:web` | Solo la web |
-| `npm run db:setup` | Crea tablas y carga datos de ejemplo |
-| `npm test` | Tests del backend (Postgres en memoria) |
-| `npm run build` | Compila el frontend en `hilo/frontend/dist` |
+```bash
+cd frontend
+npm install
+npm run dev         # web en http://localhost:5173
+```
+
+Con `npm run demo` no necesitas PostgreSQL: la API corre con `pg-mem` y los
+datos de ejemplo se reinician al cerrar.
+
+Si ya tienes PostgreSQL, en `backend`:
+
+```bash
+cp .env.example .env    # completa DATABASE_URL, JWT_SECRET, etc.
+npm run db:setup        # crea las tablas y carga el seed
+npm run dev             # API real (:4000)
+```
+
+### Scripts
+
+| Carpeta | Script | Qué hace |
+| ------- | ------ | -------- |
+| `backend` | `npm run demo` | API con datos en memoria |
+| `backend` | `npm run dev` | API con Postgres real (reinicia al guardar) |
+| `backend` | `npm start` | API en producción |
+| `backend` | `npm run db:setup` | Crea tablas y carga datos de ejemplo |
+| `backend` | `npm test` | Tests (Postgres en memoria) |
+| `frontend` | `npm run dev` | Web en modo desarrollo |
+| `frontend` | `npm run build` | Compila en `frontend/dist` |
+| `frontend` | `npm run preview` | Sirve `dist/` en local |
 
 ---
 
 ## Conexión frontend ↔ backend
 
-1. **Frontend** → `hilo/frontend/.env` (copia de `.env.example`):
+1. **Frontend** → `frontend/.env` (copia de `.env.example`):
 
    ```bash
    VITE_API_URL=http://localhost:4000
    ```
 
-   El cliente de la API vive en `hilo/frontend/src/lib/api.js`.
-
-2. **Backend** → `hilo/backend/.env` (copia de `.env.example`):
+2. **Backend** → `backend/.env` (copia de `.env.example`):
 
    ```bash
    PORT=4000
@@ -95,36 +109,28 @@ npm run dev        # API real (:4000) + web (:5173)
 
 ---
 
-## Pruebas
-
-```bash
-npm test      # esquema + API contra PostgreSQL en memoria
-```
-
----
-
 ## Despliegue
 
-1. **Render (API + BD):** en Render, **New → Blueprint**, elige este repo; el
-   `render.yaml` de la raíz crea `hilo-circular-api` y `hilo-circular-db`.
-   Después completa las claves de Cloudinary y ajusta `CORS_ORIGIN` con la URL
-   de Vercel, y ejecuta una vez `npm run db:setup` con el `DATABASE_URL` de Render.
-2. **Vercel (web):** importa el repo, pon **Root Directory** = `hilo/frontend` y
-   la variable `VITE_API_URL` con la URL de Render.
+1. **Render (API + BD):** **New → Blueprint**, elige este repo; el `render.yaml`
+   de la raíz crea `hilo-circular-api` y `hilo-circular-db`. Completa las claves
+   de Cloudinary, ajusta `CORS_ORIGIN` con la URL de Vercel y ejecuta una vez
+   `npm run db:setup` (desde `backend`) con la **External Database URL**.
+2. **Vercel (web):** importa el repo, pon **Root Directory** = `frontend` y la
+   variable `VITE_API_URL` con la URL de Render.
 
-Detalle paso a paso: `hilo/backend/README.md` y `hilo/frontend/README.md`.
+> La base PostgreSQL gratuita de Render expira a los 30 días. Para algo
+> duradero usa Neon y pon su `DATABASE_URL` en Render.
+
+Detalle paso a paso: `backend/README.md` y `frontend/README.md`.
 
 ---
 
 ## Subir a GitHub
 
-El repositorio ya está inicializado con el commit inicial. Solo falta enlazarlo
-con tu remoto:
-
 ```bash
+cd hilo
 git remote add origin https://github.com/<tu-usuario>/<tu-repo>.git
 git push -u origin main
 ```
 
-Los directorios `node_modules/`, `dist/` y los archivos `.env` quedan fuera del
-repo por el `.gitignore`.
+`node_modules/`, `dist/` y los `.env` quedan fuera del repo por el `.gitignore`.
