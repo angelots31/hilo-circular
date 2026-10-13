@@ -1,0 +1,18 @@
+# Normaliza el fin de línea a LF en texto; binarios los detecta Git solo.
+* text=auto
+
+*.md   text diff=markdown
+*.json  text
+*.js    text
+*.jsx   text
+*.css   text
+*.sql   text
+*.yaml  text
+*.yml   text
+
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.ico   binary
+*.pdf   binary

@@ -1,0 +1,36 @@
+# Blueprint de Render: crea la API y su base de datos PostgreSQL.
+# Está en la raíz del repositorio; el código del backend vive en hilo/backend.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: hilo-circular-api
+    runtime: node
+    plan: free
+    rootDir: hilo/backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/salud
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hilo-circular-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PGSSL
+        value: "true"
+      - key: CORS_ORIGIN
+        value: https://hilo-circular.vercel.app
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_FOLDER
+        value: hilo-circular
+
+databases:
+  - name: hilo-circular-db
+    plan: free
+    databaseName: hilo_circular

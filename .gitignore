@@ -1,0 +1,22 @@
+# Dependencias
+node_modules/
+
+# Entornos (los .example sí se suben)
+.env
+.env.*
+!.env.example
+
+# Builds
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
