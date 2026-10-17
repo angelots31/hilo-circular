@@ -104,7 +104,8 @@ function Rutas() {
     case 'registro':
       // Quien ya tiene sesión no vuelve a ver el formulario.
       if (usuario) return <Redirigir a={esAdmin ? '/admin' : destinoVolver('/panel')} />
-      return <Auth key={clave} modo={primero === 'registro' ? 'registro' : 'entrar'} />
+      // Sin key: al alternar entre entrar y registro el panel se desliza en vez de recargarse.
+      return <Auth modo={primero === 'registro' ? 'registro' : 'entrar'} />
     case 'subir':
       return usuario ? (
         <Subir key={clave} />
@@ -130,19 +131,24 @@ function Rutas() {
   }
 }
 
-/** Los paneles (cliente y administración) van a pantalla completa: sin navbar, sin footer. */
+/** Los paneles y el acceso van a pantalla completa: sin navbar ni footer. */
 function Estructura() {
   const { segments } = useRoute()
   const { usuario, esAdmin } = useStore()
   const [primero] = segments
   const enPanel = Boolean((primero === 'panel' && usuario && !esAdmin) || (primero === 'admin' && esAdmin))
+  const enAcceso = primero === 'entrar' || primero === 'registro'
 
   useEffect(() => {
     document.body.classList.toggle('modo-panel', enPanel)
-    return () => document.body.classList.remove('modo-panel')
-  }, [enPanel])
+    document.body.classList.toggle('modo-acceso', enAcceso)
+    return () => {
+      document.body.classList.remove('modo-panel')
+      document.body.classList.remove('modo-acceso')
+    }
+  }, [enPanel, enAcceso])
 
-  if (enPanel) {
+  if (enPanel || enAcceso) {
     return (
       <>
         <CursorHueco />

@@ -132,7 +132,7 @@ export function Encabezado() {
             )}
           </div>
         ) : (
-          <div className="sesion">
+          <div className="sesion sesion-visitante">
             <Boton to="/entrar" variante="lavanda" tamano="sm">Entrar</Boton>
           </div>
         )}
