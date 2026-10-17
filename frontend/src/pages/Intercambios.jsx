@@ -189,7 +189,7 @@ export default function Intercambios() {
                 <Etiqueta tono="claro">Historial de cada acuerdo</Etiqueta>
               </div>
             </div>
-            <div style={{ display: 'grid', placeItems: 'center' }}>
+            <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
               <Mascot pose="sentado" />
             </div>
           </div>

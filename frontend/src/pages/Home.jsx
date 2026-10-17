@@ -166,7 +166,7 @@ export default function Home() {
                 <Boton to="/nosotros" variante="claro">Conocer la marca y la paleta</Boton>
               </div>
             </div>
-            <div style={{ display: 'grid', placeItems: 'center' }}>
+            <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
               <Mascot pose="colgado" className="mascota-grande" />
             </div>
           </div>
@@ -229,7 +229,7 @@ export default function Home() {
                 <Boton to="/domicilio" variante="fantasma" tamano="lg">Ver cobertura de domicilio</Boton>
               </div>
             </div>
-            <div style={{ display: 'grid', placeItems: 'center' }}>
+            <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
               <Mascot pose="saluda" />
             </div>
           </div>

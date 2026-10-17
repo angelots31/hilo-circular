@@ -104,7 +104,7 @@ export default function Domicilio() {
                 </Boton>
               </div>
             </div>
-            <div style={{ display: 'grid', placeItems: 'center' }}>
+            <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
               <Mascot pose="camina" />
             </div>
           </div>
@@ -294,7 +294,7 @@ export default function Domicilio() {
                 <Etiqueta tono="claro">Cero plástico de un solo uso</Etiqueta>
               </div>
             </div>
-            <div className="empaques-mascota" style={{ display: 'grid', placeItems: 'center' }}>
+            <div className="empaques-mascota mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
               <Mascot pose="colgado" />
             </div>
           </div>

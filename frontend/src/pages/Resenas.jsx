@@ -212,7 +212,7 @@ export default function Resenas() {
                 <Etiqueta tono="claro">Reporte en un clic</Etiqueta>
               </div>
             </div>
-            <div style={{ display: 'grid', placeItems: 'center' }}>
+            <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
               <Mascot pose="sentado" />
             </div>
           </div>

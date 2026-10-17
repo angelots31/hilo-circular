@@ -35,7 +35,7 @@ export default function Nosotros() {
                 <Etiqueta tono="rosa">Comunidad abierta</Etiqueta>
               </div>
             </div>
-            <div style={{ display: 'grid', placeItems: 'center' }}>
+            <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
               <Mascot pose="saluda" />
             </div>
           </div>
@@ -151,7 +151,7 @@ export default function Nosotros() {
                 <Boton to="/como-funciona" variante="fantasma" tamano="lg">Leer las reglas</Boton>
               </div>
             </div>
-            <div style={{ display: 'grid', placeItems: 'center' }}>
+            <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
               <Mascot pose="sentado" />
             </div>
           </div>

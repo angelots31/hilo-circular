@@ -1633,3 +1633,43 @@ textarea:focus-visible {
 @media (max-width: 860px) {
   .nav-acciones { gap: 0.4rem; }
 }
+
+/* ===== Móvil: el acceso muestra solo el formulario ===== */
+@media (max-width: 768px) {
+  .acceso-visual { display: none; }
+  .acceso-rejilla { grid-template-columns: minmax(0, 1fr); min-height: 100svh; }
+  .acceso-panel,
+  .acceso[data-modo='registro'] .acceso-panel {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 100svh;
+    justify-content: center;
+    transform: none;
+    padding: clamp(4.2rem, 10vh, 5.2rem) clamp(1.1rem, 5vw, 1.6rem) clamp(2rem, 6vh, 3rem);
+  }
+  .acceso[data-modo='registro'] .acceso-panel { justify-content: flex-start; }
+  .acceso[data-modo='registro'] .auth-form { align-content: start; }
+  .acceso-volver { top: 0.9rem; left: 0.9rem; }
+}
+
+/* ===== Móvil: mascotas grandes y apiladas junto al texto ===== */
+@media (max-width: 768px) {
+  .mascota-panel { margin-top: 0.9rem; }
+  .mascota-panel .mascota,
+  .empaques-mascota.mascota-panel .mascota {
+    width: min(60vw, 220px);
+    max-width: 60vw;
+    max-height: none;
+  }
+  .hero-mascota { margin-top: 0.6rem; }
+  .hero-mascota .mascota { width: min(68vw, 270px); max-width: 68vw; max-height: none; }
+  .vacio-mascota { width: min(200px, 56vw); max-width: 56vw; }
+  .vacio.compacto .vacio-mascota { width: min(150px, 44vw); max-width: 44vw; }
+  .no-encontrada .mascota { width: min(64vw, 290px); max-width: 64vw; max-height: none; }
+  .muestrario-tonos { gap: 0.7rem; }
+  .muestra-tono .mascota { width: min(100%, 9.5rem); }
+}
+
+@media (max-width: 420px) {
+  .mascota-panel .mascota { width: min(58vw, 200px); max-width: 58vw; }
+}

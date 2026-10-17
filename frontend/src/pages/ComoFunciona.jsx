@@ -42,7 +42,7 @@ export default function ComoFunciona() {
                 <Boton to="/catalogo" variante="fantasma" tamano="lg">Ver qué hay disponible</Boton>
               </div>
             </div>
-            <div style={{ display: 'grid', placeItems: 'center' }}>
+            <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
               <Mascot pose="camina" />
             </div>
           </div>
@@ -137,7 +137,7 @@ export default function ComoFunciona() {
                 <Boton variante="fantasma" tamano="lg" to="/resenas">Leer experiencias reales</Boton>
               </div>
             </div>
-            <div style={{ display: 'grid', placeItems: 'center' }}>
+            <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
               <Mascot pose="saluda" />
             </div>
           </div>
