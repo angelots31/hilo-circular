@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Icono from './Iconos.jsx'
-import { Avatar, Boton, Etiqueta, Modal } from './ui.jsx'
+import { Avatar, Boton, Etiqueta } from './ui.jsx'
 import { href, useRoute } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
 import { ESLOGAN, REDES, SITIO_URL } from '../lib/seed.js'
@@ -170,10 +170,18 @@ export function Pie() {
   const [correo, setCorreo] = useState('')
   const [qrAbierto, setQrAbierto] = useState(false)
 
-  // En computador el QR abre una versión grande para fotografiar desde el celular;
-  // en pantallas táctiles el enlace navega directamente a la web.
+  useEffect(() => {
+    if (!qrAbierto) return
+    const onKey = (e) => e.key === 'Escape' && setQrAbierto(false)
+    document.body.style.overflow = 'hidden'
+    addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = ''
+      removeEventListener('keydown', onKey)
+    }
+  }, [qrAbierto])
+
   const abrirQr = (evento) => {
-    if (!matchMedia('(pointer: fine)').matches) return
     evento.preventDefault()
     setQrAbierto(true)
   }
@@ -272,32 +280,57 @@ export function Pie() {
         <p>Proyecto académico · ODS 12 · Encuesta de campo 2026.</p>
       </div>
 
-      <Modal
-        abierto={qrAbierto}
-        onCerrar={() => setQrAbierto(false)}
-        titulo="Escanea y entra desde tu celular"
-        descripcion="Apunta la cámara al código y toca el aviso que aparece. Te llevará a la misma web que estás viendo."
-        ancho="min(25rem, 92vw)"
-        pie={
-          <>
-            <Boton variante="fantasma" onClick={() => setQrAbierto(false)}>Cerrar</Boton>
-            <a className="boton solido" href={SITIO_URL} target="_blank" rel="noopener noreferrer">
-              Abrir en una pestaña
-            </a>
-          </>
-        }
-      >
-        <div className="qr-modal">
-          <span className="qr-modal-ceja">Escanéame</span>
-          <div className="qr-modal-marco">
-            <img src="/qr-hilo-circular.svg" alt="Código QR grande de Hilo Circular" width="300" height="300" decoding="async" />
+      {qrAbierto && (
+        <div
+          className="modal-fondo"
+          onClick={() => setQrAbierto(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Código QR de Hilo Circular"
+          style={{ alignItems: 'center', justifyContent: 'center', zIndex: 100 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              display: 'inline-flex',
+              background: '#ffffff',
+              padding: 'clamp(1rem, 3vw, 1.5rem)',
+              borderRadius: '24px',
+              boxShadow: '0 25px 60px -15px rgba(27, 26, 54, 0.45)',
+              animation: 'entrar-arriba 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both',
+              maxWidth: '92vw',
+              maxHeight: '92vh',
+            }}
+          >
+            <button
+              type="button"
+              className="modal-cerrar"
+              onClick={() => setQrAbierto(false)}
+              aria-label="Cerrar ventana"
+              style={{
+                position: 'absolute',
+                top: '-14px',
+                right: '-14px',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
+                cursor: 'pointer',
+              }}
+            >
+              ×
+            </button>
+            <img
+              src="/qr-hilo-circular.svg"
+              alt="Código QR de Hilo Circular"
+              decoding="async"
+              style={{
+                width: 'min(420px, 80vw, 80vh)',
+                height: 'min(420px, 80vw, 80vh)',
+                display: 'block',
+              }}
+            />
           </div>
-          <a className="qr-modal-url" href={SITIO_URL} target="_blank" rel="noopener noreferrer">
-            hilo-circular.vercel.app <span aria-hidden="true">↗</span>
-          </a>
-          <p className="qr-modal-nota">También puedes escribir esa dirección en el navegador del celular.</p>
         </div>
-      </Modal>
+      )}
     </footer>
   )
 }

@@ -167,11 +167,11 @@ export const RUTAS = [
 ]
 
 export const EQUIPO = [
+  { nombre: 'Jimena Andrea Graciano Vásquez', rol: 'Diseñadora gráfica' },
   { nombre: 'Camilo Marín Bolaños', rol: 'Líder de proyecto y editor' },
   { nombre: 'Isaac Hurtado Ramírez', rol: 'Estratega de solución' },
   { nombre: 'Valery Uparela Arroyo', rol: 'Investigadora de contexto' },
   { nombre: 'Sofía Balbón Patiño', rol: 'Investigadora de UX' },
-  { nombre: 'Jimena Andrea Graciano Vásquez', rol: 'Diseñadora gráfica' },
 ]
 
 export const REFERENTES = [
