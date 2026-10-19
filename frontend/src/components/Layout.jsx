@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Icono from './Iconos.jsx'
-import { Avatar, Boton, Etiqueta } from './ui.jsx'
+import { Avatar, Boton, Etiqueta, Modal } from './ui.jsx'
 import { href, useRoute } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
 import { ESLOGAN, REDES, SITIO_URL } from '../lib/seed.js'
@@ -168,6 +168,16 @@ export function Encabezado() {
 export function Pie() {
   const { avisar } = useStore()
   const [correo, setCorreo] = useState('')
+  const [qrAbierto, setQrAbierto] = useState(false)
+
+  // En computador el QR abre una versión grande para fotografiar desde el celular;
+  // en pantallas táctiles el enlace navega directamente a la web.
+  const abrirQr = (evento) => {
+    if (!matchMedia('(pointer: fine)').matches) return
+    evento.preventDefault()
+    setQrAbierto(true)
+  }
+
   return (
     <footer className="pie tono-oscuro" data-tono="oscuro">
       <div className="pie-rejilla">
@@ -243,7 +253,8 @@ export function Pie() {
             href={SITIO_URL}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Abrir Hilo Circular en el celular desde el código QR"
+            onClick={abrirQr}
+            aria-label="Código QR de Hilo Circular para abrir la web en el celular"
           >
             <img
               src="/qr-hilo-circular.svg"
@@ -265,6 +276,27 @@ export function Pie() {
         <p>© {new Date().getFullYear()} Hilo Circular · Moda circular para universitarios en Medellín.</p>
         <p>Proyecto académico · ODS 12 · Encuesta de campo 2026.</p>
       </div>
+
+      <Modal
+        abierto={qrAbierto}
+        onCerrar={() => setQrAbierto(false)}
+        titulo="Abre Hilo Circular en tu celular"
+        descripcion="Apunta la cámara del celular al código. Te llevará a la misma web que estás viendo."
+        ancho="min(26rem, 92vw)"
+        pie={
+          <>
+            <Boton variante="fantasma" onClick={() => setQrAbierto(false)}>Cerrar</Boton>
+            <a className="boton solido" href={SITIO_URL} target="_blank" rel="noopener noreferrer">
+              Abrir en una pestaña
+            </a>
+          </>
+        }
+      >
+        <div className="qr-modal">
+          <img src="/qr-hilo-circular.svg" alt="Código QR grande de Hilo Circular" width="300" height="300" decoding="async" />
+          <p>También puedes escribir <b>hilo-circular.vercel.app</b> en el navegador del celular.</p>
+        </div>
+      </Modal>
     </footer>
   )
 }

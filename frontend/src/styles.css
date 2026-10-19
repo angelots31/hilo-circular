@@ -1900,3 +1900,88 @@ textarea:focus-visible {
 }
 .control-rango::-webkit-slider-runnable-track { height: 12px; border-radius: 99px; background: transparent; }
 .control-rango::-moz-range-track { height: 12px; border-radius: 99px; background: transparent; }
+
+/* =========================================================================
+   Sexta pasada: aire en móvil, sin mascotas y movimiento sutil
+   ========================================================================= */
+
+html { scroll-padding-top: 4.8rem; }
+
+/* En móvil se retiran las ilustraciones de la mascota y su muestrario:
+   la marca queda en el logo redondeado de la cabecera y del pie. */
+@media (max-width: 768px) {
+  .mascota,
+  .hero-mascota,
+  .mascota-panel,
+  .muestrario-tonos,
+  .muestrario-nota,
+  .vacio-mascota { display: none !important; }
+
+  html { scroll-padding-top: 5.4rem; }
+  .seccion { padding-block: 3.6rem; }
+  #contenido > .seccion:first-child:not(.hero) { padding-top: 5.8rem; }
+}
+
+@media (max-width: 620px) {
+  .seccion { padding-block: 3.9rem; }
+  #contenido > .seccion:first-child:not(.hero) { padding-top: 6.4rem; }
+  .hero { padding-top: 6.4rem; padding-bottom: 3.9rem; }
+  .titulo-seccion { margin-bottom: 2.5rem; }
+  .contenedor { padding-inline: 1rem; }
+}
+
+/* ------------------------------------------------- LUZ y movimiento suave */
+
+@media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .ceja::before { animation: girar-ceja 16s linear infinite; }
+  .hero-eslogan i { animation: latido 2.3s ease-in-out infinite; }
+
+  .hero-dato { animation: dato-entra 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .hero-dato:nth-child(2) { animation-delay: 0.07s; }
+  .hero-dato:nth-child(3) { animation-delay: 0.14s; }
+  .hero-dato:nth-child(4) { animation-delay: 0.21s; }
+
+  .hero-acciones .boton:first-child { animation: flotar-cta 5.5s ease-in-out infinite; }
+
+  .boton,
+  .prenda,
+  .tarjeta,
+  .nivel-tarjeta,
+  .canal-tarjeta,
+  .equipo-tarjeta,
+  .hallazgo,
+  .taller-tarjeta,
+  .pie-red,
+  .pie-qr { transition: transform 0.22s ease, box-shadow 0.22s ease; }
+
+  .boton:active,
+  .pie-red:active,
+  .pie-qr:active { transform: scale(0.975); }
+  .prenda:active { transform: scale(0.99); }
+  .tarjeta:active,
+  .nivel-tarjeta:active,
+  .canal-tarjeta:active,
+  .equipo-tarjeta:active,
+  .hallazgo:active,
+  .taller-tarjeta:active { transform: scale(0.992); }
+}
+
+@keyframes girar-ceja { to { transform: rotate(360deg); } }
+@keyframes dato-entra { from { opacity: 0; transform: translateY(12px); } }
+@keyframes flotar-cta { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+/* ------------------------------------------------------- QR grande en modal */
+
+.qr-modal { display: grid; justify-items: center; gap: 0.9rem; text-align: center; }
+.qr-modal img {
+  width: min(300px, 70vw);
+  height: auto;
+  padding: 10px;
+  border: 1px solid var(--línea);
+  border-radius: 18px;
+  background: #fff;
+}
+.qr-modal p { font-size: 0.88rem; line-height: 1.5; opacity: 0.78; }
+
+/* La animación de la ceja no debe rotar el bloque de texto del título. */
+.ceja::before { transform-origin: 50% 50%; }

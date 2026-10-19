@@ -121,7 +121,7 @@ export default function Nosotros() {
                   </div>
                 ))}
               </div>
-              <p style={{ fontSize: '0.85rem', opacity: 0.7, marginTop: '0.9rem' }}>
+              <p className="muestrario-nota" style={{ fontSize: '0.85rem', opacity: 0.7, marginTop: '0.9rem' }}>
                 La ilustración se presenta sobre cuatro tonos de la paleta para mostrar su contraste en distintos fondos.
               </p>
             </div>
