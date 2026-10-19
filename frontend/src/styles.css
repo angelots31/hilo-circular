@@ -1673,3 +1673,115 @@ textarea:focus-visible {
 @media (max-width: 420px) {
   .mascota-panel .mascota { width: min(58vw, 200px); max-width: 58vw; }
 }
+
+/* =========================================================================
+   Cuarta pasada: pie con redes, iconos de panel, contenido oficial y móvil
+   ========================================================================= */
+
+/* ---------------------------------------------------------- Pie con redes */
+
+.pie-marca-cabeza { display: flex; align-items: center; gap: 0.8rem; }
+.pie-logo { width: 44px; height: 44px; flex: none; border-radius: 14px; object-fit: cover; border: 1px solid rgba(226, 222, 234, 0.28); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22); }
+
+.pie-redes { gap: 0.5rem; }
+.pie-columna .pie-red { display: flex; align-items: center; gap: 0.7rem; padding: 0.55rem 0.65rem; border-radius: 14px; background: rgba(226, 222, 234, 0.07); border: 1px solid rgba(226, 222, 234, 0.14); opacity: 1; transition: background 0.2s, border-color 0.2s, transform 0.2s; }
+.pie-columna .pie-red:hover { background: rgba(226, 222, 234, 0.15); border-color: rgba(226, 222, 234, 0.32); transform: translateY(-1px); }
+.pie-red-icono { width: 2.25rem; height: 2.25rem; flex: none; display: grid; place-items: center; border-radius: 50%; background: rgba(226, 222, 234, 0.15); color: #fff; }
+.pie-red-icono .icono-linea { width: 1.1rem; height: 1.1rem; }
+.pie-red-texto { display: grid; line-height: 1.25; min-width: 0; }
+.pie-red-texto b { font-size: 0.9rem; }
+.pie-red-texto small { font-size: 0.74rem; opacity: 0.62; overflow-wrap: anywhere; }
+.pie-redes-nota { margin-top: 0.35rem; font-size: 0.78rem; opacity: 0.6; }
+
+/* ------------------------------------------------------- Iconos de línea */
+
+.icono-linea { display: block; width: 1.15rem; height: 1.15rem; flex: none; }
+.panel-nav-icono { display: grid; place-items: center; width: 1.4rem; flex: 0 0 1.4rem; opacity: 0.82; transition: opacity 0.18s, transform 0.18s; }
+.panel-nav a, .panel-enlace { position: relative; }
+.panel-nav a:hover .panel-nav-icono, .panel-nav a.activo .panel-nav-icono { opacity: 1; }
+.panel-nav a.activo .panel-nav-icono { transform: translateY(-1px); }
+.panel-nav a.activo::before { content: ''; position: absolute; left: -0.45rem; top: 22%; bottom: 22%; width: 3px; border-radius: 99px; background: var(--lavanda); }
+.panel-nav-icono svg { width: 1.18rem; height: 1.18rem; }
+
+/* --------------------------------------------- Piezas del contenido nuevo */
+
+.niveles-rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 0.9rem; }
+.nivel-tarjeta { height: 100%; display: flex; flex-direction: column; gap: 0.35rem; padding: 1.2rem 1.1rem; border-radius: 18px; background: rgba(255, 255, 255, 0.88); border: 1px solid var(--línea); box-shadow: var(--sombra-suave); }
+.nivel-num { font: 800 1.5rem/1 var(--fuente-titulo); letter-spacing: -0.04em; color: var(--lavanda); }
+.nivel-tarjeta h3 { margin-top: 0.3rem; font-size: 1.08rem; }
+.nivel-validacion { font-size: 0.83rem; font-weight: 600; line-height: 1.35; color: var(--ciruela); }
+.nivel-detalle { font-size: 0.83rem; line-height: 1.45; opacity: 0.72; }
+
+.canal-tarjeta { height: 100%; display: flex; align-items: flex-start; gap: 1rem; padding: 1.25rem 1.3rem; border-radius: 18px; background: #fff; border: 1px solid var(--línea); box-shadow: var(--sombra-suave); }
+.canal-indice { font: 800 1.05rem/1 var(--fuente-titulo); color: var(--lavanda); padding-top: 0.2rem; }
+.canal-tarjeta h3 { font-size: 1.12rem; margin-bottom: 0.35rem; }
+.canal-tarjeta p { font-size: 0.92rem; line-height: 1.5; opacity: 0.78; }
+
+.tarjeta-info { margin-top: 1.2rem; padding: 1.1rem 1.2rem; border-radius: 18px; background: rgba(104, 114, 170, 0.1); border: 1px solid rgba(104, 114, 170, 0.2); }
+.tarjeta-info b { font-family: var(--fuente-titulo); }
+.tarjeta-info p { margin-top: 0.4rem; font-size: 0.9rem; opacity: 0.8; }
+
+.tarjeta-voz { background: rgba(255, 255, 255, 0.9); }
+.voz-comilla { display: block; height: 1.25rem; font: 800 3rem/0.75 var(--fuente-titulo); color: var(--lavanda); }
+
+.hallazgos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; }
+.hallazgo { height: 100%; padding: 1.1rem; border-radius: 18px; background: #fff; border: 1px solid var(--línea); box-shadow: var(--sombra-suave); }
+.hallazgo b { display: block; font: 800 clamp(1.5rem, 3vw, 2rem)/1 var(--fuente-titulo); letter-spacing: -0.04em; color: var(--lavanda); }
+.hallazgo p { margin-top: 0.4rem; font-size: 0.82rem; line-height: 1.4; opacity: 0.75; }
+
+.tarjeta-ods { margin-top: 1.3rem; padding: 1.1rem 1.2rem; border-radius: 18px; background: rgba(104, 114, 170, 0.1); border: 1px solid rgba(104, 114, 170, 0.22); }
+.tarjeta-ods b { font-family: var(--fuente-titulo); font-size: 0.95rem; }
+.tarjeta-ods p { margin-top: 0.4rem; font-size: 0.88rem; line-height: 1.5; opacity: 0.82; }
+
+.equipo-rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 0.8rem; }
+.equipo-tarjeta { height: 100%; display: flex; align-items: center; gap: 0.9rem; padding: 1rem 1.1rem; border-radius: 18px; background: #fff; border: 1px solid var(--línea); box-shadow: var(--sombra-suave); }
+.equipo-tarjeta b { display: block; font-size: 0.95rem; line-height: 1.25; }
+.equipo-tarjeta small { display: block; margin-top: 0.2rem; font-size: 0.8rem; opacity: 0.66; }
+
+.taller-indice { font: 800 1.4rem/1 var(--fuente-titulo); letter-spacing: -0.04em; color: var(--lavanda); }
+
+/* ------------------------------------------ Rendimiento y composición móvil */
+
+@media (max-width: 900px) {
+  /* El fondo animado y los adornos son decorativos: fuera del móvil. */
+  .fondo, .grano, .adornos, .hero-formas, .trama { display: none !important; }
+
+  /* Sin blur de fondo: evita repintados costosos al hacer scroll. */
+  .tono-oscuro, .tono-lavanda { backdrop-filter: none; }
+  .tono-oscuro { background: var(--ciruela); }
+  .tono-lavanda { background: var(--lavanda); }
+  .cabecera.pegada { backdrop-filter: none; background: rgba(246, 244, 249, 0.97); }
+  .hero-mascota .mascota { filter: none; animation: respirar 7s ease-in-out infinite; }
+  .hero-mascota::after { display: none; }
+  .mercurio { filter: none; }
+  .marquesina-fila { animation-duration: 46s; }
+}
+
+@media (max-width: 768px) {
+  .hero-mascota { order: -1; justify-self: end; margin: 0 0 0.15rem; }
+  .hero-mascota .mascota { width: min(38vw, 158px); max-width: 44vw; max-height: none; }
+  .mascota-panel { margin-top: 0.4rem; justify-self: end; }
+  .mascota-panel .mascota,
+  .empaques-mascota.mascota-panel .mascota { width: min(42vw, 152px); max-width: 42vw; max-height: none; }
+  .vacio-mascota { width: min(46vw, 168px); max-width: 46vw; }
+  .no-encontrada .mascota { width: min(52vw, 230px); max-width: 52vw; }
+  .hallazgos { gap: 0.65rem; }
+  .hallazgo { padding: 0.95rem; }
+  .equipo-tarjeta { padding: 0.9rem; }
+  .pie-marca-cabeza { gap: 0.65rem; }
+  .pie-logo { width: 38px; height: 38px; border-radius: 12px; }
+}
+
+@media (max-width: 620px) {
+  /* Las mascotas grandes de sección no se apilan bajo el texto en el celular.
+     El display inline de cada panel se neutraliza con !important. */
+  .seccion .rejilla.dos > .mascota-panel { display: none !important; }
+  .hero-mascota .mascota { width: min(40vw, 142px); max-width: 46vw; }
+  .niveles-rejilla { gap: 0.7rem; }
+  .canal-tarjeta { padding: 1.05rem; gap: 0.75rem; }
+}
+
+@media (max-width: 420px) {
+  .hallazgos { grid-template-columns: minmax(0, 1fr); }
+  .hero-mascota .mascota { width: min(42vw, 126px); max-width: 48vw; }
+}

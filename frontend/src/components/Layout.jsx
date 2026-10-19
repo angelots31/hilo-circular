@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import Mascot from './Mascot.jsx'
+import Icono from './Iconos.jsx'
 import { Avatar, Boton, Etiqueta } from './ui.jsx'
 import { href, useRoute } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
-import { ESLOGAN } from '../lib/seed.js'
+import { ESLOGAN, REDES } from '../lib/seed.js'
 
 const ENLACES = [
   { to: '/', texto: 'Inicio' },
   { to: '/catalogo', texto: 'Catálogo' },
   { to: '/como-funciona', texto: 'Cómo funciona' },
   { to: '/resenas', texto: 'Reseñas' },
-  { to: '/domicilio', texto: 'Domicilio' },
+  { to: '/domicilio', texto: 'Talleres' },
   { to: '/nosotros', texto: 'Nosotros' },
 ]
 
@@ -172,18 +173,21 @@ export function Pie() {
     <footer className="pie tono-oscuro" data-tono="oscuro">
       <div className="pie-rejilla">
         <div className="pie-marca">
-          <h2>Hilo Circular</h2>
+          <div className="pie-marca-cabeza">
+            <img className="pie-logo" src="/mascota/icono.jpg" alt="" width="44" height="44" loading="lazy" decoding="async" />
+            <h2>Hilo Circular</h2>
+          </div>
           <p className="pie-eslogan">{ESLOGAN}</p>
           <p>
-            Una comunidad para darle otra vuelta al clóset. Intercambia prendas, coordina el domicilio y deja que
-            cada prenda tenga más de una vida.
+            Una experiencia phygital que le da una segunda vida a la ropa que ya no usas: retos en redes, talleres
+            relámpago y una comunidad universitaria en Medellín que repara, transforma e intercambia.
           </p>
           <form
             className="pie-correo"
             onSubmit={(e) => {
               e.preventDefault()
               if (!correo.includes('@')) return avisar('Escribe un correo válido para suscribirte.', 'aviso')
-              avisar('¡Listo! Te contaremos los nuevos intercambios de tu ciudad.', 'ok')
+              avisar('¡Listo! Te enviamos la agenda de talleres y los retos de la semana.', 'ok')
               setCorreo('')
             }}
           >
@@ -192,9 +196,9 @@ export function Pie() {
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}
               placeholder="tu@correo.com"
-              aria-label="Correo para novedades"
+              aria-label="Correo para la agenda de talleres"
             />
-            <Boton tamano="sm" variante="claro" type="submit">Recibir novedades</Boton>
+            <Boton tamano="sm" variante="claro" type="submit">Recibir la agenda</Boton>
           </form>
         </div>
 
@@ -203,7 +207,7 @@ export function Pie() {
           <a href={href('/catalogo')}>Catálogo</a>
           <a href={href('/como-funciona')}>Cómo funciona</a>
           <a href={href('/resenas')}>Reseñas</a>
-          <a href={href('/domicilio')}>Domicilio y entregas</a>
+          <a href={href('/domicilio')}>Talleres y entregas</a>
           <a href={href('/nosotros')}>Sobre la marca</a>
         </nav>
 
@@ -215,20 +219,31 @@ export function Pie() {
           <a href={href('/admin')}>Administración</a>
         </nav>
 
-        <div className="pie-columna">
-          <h3>Paleta de la marca</h3>
-          <ul className="pie-paleta">
-            <li><i style={{ background: '#6872aa' }} />#6872aa · creatividad</li>
-            <li><i style={{ background: '#5d4655' }} />#5d4655 · permanencia</li>
-            <li><i style={{ background: '#e2deea' }} />#e2deea · equilibrio</li>
-            <li><i style={{ background: '#e5c4c6' }} />#e5c4c6 · cercanía</li>
-          </ul>
+        <div className="pie-columna pie-redes">
+          <h3>Síguenos</h3>
+          {REDES.map((red) => (
+            <a
+              key={red.nombre}
+              className="pie-red"
+              href={red.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${red.nombre} de Hilo Circular (se abre en otra pestaña)`}
+            >
+              <span className="pie-red-icono" aria-hidden="true"><Icono nombre={red.nombre.toLowerCase()} /></span>
+              <span className="pie-red-texto">
+                <b>{red.nombre}</b>
+                <small>{red.usuario}</small>
+              </span>
+            </a>
+          ))}
+          <p className="pie-redes-nota">Retos, antes y después, y la agenda de talleres relámpago.</p>
         </div>
       </div>
 
       <div className="pie-legal">
-        <p>© {new Date().getFullYear()} Hilo Circular · Prototipo de interfaz, sin conexión a datos reales.</p>
-        <p>Términos · Privacidad · Tratamiento de datos · Hecho con hilo y paciencia en Medellín.</p>
+        <p>© {new Date().getFullYear()} Hilo Circular · Moda circular para universitarios en Medellín.</p>
+        <p>Proyecto académico · ODS 12 · Encuesta de campo 2026.</p>
       </div>
     </footer>
   )

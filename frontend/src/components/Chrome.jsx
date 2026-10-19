@@ -6,8 +6,12 @@ export function Fondo() {
   const refs = useRef({})
   const ref = (i, k) => (el) => { (refs.current[i] ||= {})[k] = el }
   const puntos = useMemo(() => puntosHalftone(11, 18), [])
+  // En pantallas pequeñas el fondo decorativo se omite por completo: ahorra
+  // nodos SVG, memoria y un bucle de animación que compite con el scroll.
+  const [ligero] = useState(() => typeof matchMedia !== 'undefined' && matchMedia('(max-width: 900px)').matches)
 
   useEffect(() => {
+    if (ligero) return
     const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches
     let raf
     const pintar = (t) => {
@@ -41,7 +45,9 @@ export function Fondo() {
     const bucle = (ms) => { pintar(ms / 1000); raf = requestAnimationFrame(bucle) }
     raf = requestAnimationFrame(bucle)
     return () => cancelAnimationFrame(raf)
-  }, [])
+  }, [ligero])
+
+  if (ligero) return null
 
   const paradas = (
     <>

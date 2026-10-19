@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { DESTELLO, puntosHalftone, trazo } from '../lib/mercurio.js'
 
 /** Destello de cuatro puntas con acabado cromado. */
@@ -48,7 +48,10 @@ const DISENOS = [
 
 /** Formas decorativas de una sección; cada sección usa una composición distinta. */
 export function Adornos({ n = 0 }) {
+  // En móvil no se montan: son decorativas y suman cientos de nodos SVG.
+  const [compacto] = useState(() => typeof matchMedia === 'function' && matchMedia('(max-width: 900px)').matches)
   const diseno = DISENOS[n % DISENOS.length]
+  if (compacto) return null
   return (
     <div className="adornos" aria-hidden="true">
       {diseno.map(([tipo, tam, pos], i) => (

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import Mascot from './Mascot.jsx'
+import Icono from './Iconos.jsx'
 import { Avatar } from './ui.jsx'
 import { href, navigate } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
@@ -51,7 +52,7 @@ export default function PanelShell({
               aria-current={vista === s.valor ? 'page' : undefined}
               onClick={() => setAbierto(false)}
             >
-              <span className="panel-nav-icono" aria-hidden="true">{s.icono}</span>
+              <span className="panel-nav-icono" aria-hidden="true"><Icono nombre={s.icono} /></span>
               <span>{s.texto}</span>
               {insignias[s.valor] > 0 && <em className="panel-insignia">{insignias[s.valor]}</em>}
             </a>
@@ -59,7 +60,7 @@ export default function PanelShell({
           {extras.length > 0 && <hr />}
           {extras.map((e) => (
             <button key={e.texto} type="button" onClick={e.onClick}>
-              <span className="panel-nav-icono" aria-hidden="true">{e.icono}</span>
+              <span className="panel-nav-icono" aria-hidden="true"><Icono nombre={e.icono} /></span>
               <span>{e.texto}</span>
             </button>
           ))}
@@ -74,10 +75,10 @@ export default function PanelShell({
             </span>
           </div>
           <a className="panel-enlace panel-volver-sitio" href={href('/')} onClick={() => setAbierto(false)}>
-            <span className="panel-nav-icono" aria-hidden="true">↩</span> Volver al sitio
+            <span className="panel-nav-icono" aria-hidden="true"><Icono nombre="volver" /></span> Volver al sitio
           </a>
           <button type="button" className="panel-enlace" onClick={() => { salir(); navigate('/') }}>
-            <span className="panel-nav-icono" aria-hidden="true">⏻</span> Cerrar sesión
+            <span className="panel-nav-icono" aria-hidden="true"><Icono nombre="salir" /></span> Cerrar sesión
           </button>
         </div>
       </aside>

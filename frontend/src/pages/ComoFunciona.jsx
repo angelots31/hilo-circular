@@ -1,23 +1,33 @@
 import { useState } from 'react'
 import Mascot from '../components/Mascot.jsx'
-import { Aparece, Avatar, Boton, Etiqueta, Seccion, TituloSeccion } from '../components/ui.jsx'
-import { PASOS } from '../lib/seed.js'
-
-const REGLAS = [
-  { titulo: 'Describe con honestidad', texto: 'Sube fotos del estado real, menciona manchas, desgastes o arreglos. Una descripción sincera acelera el intercambio.' },
-  { titulo: 'Un intercambio, dos acuerdos', texto: 'Ninguna prenda se envía hasta que ambas personas aceptan la propuesta dentro de la plataforma.' },
-  { titulo: 'Cuida el empaque', texto: 'Reutiliza bolsas, cajas y papel que ya tengas en casa. El empaque circular también cuenta en la experiencia.' },
-  { titulo: 'Califica al final', texto: 'Después de recibir, deja tu reseña. La reputación de cada perfil la construye la comunidad.' },
-  { titulo: 'Nada de dinero por fuera', texto: 'Los pagos de domicilio se hacen por la plataforma. Así protegemos a las dos partes del intercambio.' },
-  { titulo: 'Apoya y denuncia', texto: 'Si algo no coincide con lo publicado, escríbenos desde el detalle del envío. El equipo revisa cada caso.' },
-]
+import { Aparece, Boton, Etiqueta, Seccion, TituloSeccion } from '../components/ui.jsx'
+import { CANALES, NIVELES, PASOS, PRINCIPIOS, RUTAS } from '../lib/seed.js'
 
 const PREGUNTAS = [
-  { p: '¿Necesito dinero para intercambiar?', r: 'No. El intercambio es directo entre prendas. Lo único que se paga es el envío a domicilio si decides usarlo, y siempre puedes acordar un punto de encuentro sin costo.' },
-  { p: '¿Qué pasa si la prenda no coincide con la descripción?', r: 'Tienes tres días desde la entrega para reportarlo. El equipo revisa las fotos originales y, si hay diferencia, la prenda regresa y se ajusta la reputación de quien publicó.' },
-  { p: '¿Cómo viajan las prendas?', r: 'Recolectamos en la dirección que registres, empacamos con material reutilizado y viajamos con transportadoras aliadas. Recibes la guía y el seguimiento en tu panel.' },
-  { p: '¿Puedo publicar prendas arregladas o intervenidas?', r: 'Claro, es parte de la idea. Solo descríbelo: si tiene un remiendo, un bordado o un ajuste, cuéntalo en la descripción para que la otra persona sepa que es una prenda única.' },
-  { p: '¿Existe un límite de publicaciones?', r: 'Puedes publicar hasta veinte prendas activas al mismo tiempo. Así el catálogo se mantiene fresco y la gente renueva su clóset con frecuencia.' },
+  {
+    p: '¿Necesito dinero para participar?',
+    r: 'Reparar e intercambiar son gratuitos. Si quieres materiales del aliado, la ruta social (trueque con espacio y percha) cuesta $5.000 y la ruta creativa (upcycling con kit) $8.000. Las rutas minimalista y observador son $0.',
+  },
+  {
+    p: '¿Cuánto tiempo me toma?',
+    r: 'Los talleres duran entre 15 y 60 minutos. En la encuesta, el 54,2 % de las personas dispone de 30 a 60 minutos y el 77,9 % de hasta una hora: por eso el formato es relámpago y sin trámites previos.',
+  },
+  {
+    p: '¿Dónde son los talleres?',
+    r: 'Cerca de las universidades y de los barrios, en espacios públicos accesibles como parques, plazas o campus. El 64,4 % asistiría si el taller le queda de paso, así que la cercanía es una condición del proyecto, no un detalle.',
+  },
+  {
+    p: '¿Tengo que saber coser?',
+    r: 'No. Cada taller tiene un facilitador modista y materiales aportados por el aliado. Además, los cuadernitos impresos y los videos tutoriales explican paso a paso reparación, transformación y trueque.',
+  },
+  {
+    p: '¿Cómo sé que el impacto es real?',
+    r: 'Cada prenda recibe una etiqueta con QR que enlaza al micrositio: allí ves el proceso, el impacto de tu prenda y el panel público de resultados. No publicamos una etiqueta de sostenibilidad sin evidencia detrás.',
+  },
+  {
+    p: '¿Qué pasa si no puedo ir a un taller?',
+    r: 'La ruta minimalista incluye un PDF y un reel tutorial para reparar en casa en 10 a 15 minutos. El trueque también puede coordinarse por la comunidad de WhatsApp y cerrarse en un punto de encuentro.',
+  },
 ]
 
 export default function ComoFunciona() {
@@ -31,15 +41,16 @@ export default function ComoFunciona() {
             <div>
               <p className="ceja">Cómo funciona</p>
               <h1 style={{ fontSize: 'clamp(2.4rem, 6vw, 4.4rem)' }}>
-                El ciclo completo, del clóset de alguien al tuyo
+                La prenda cambia físicamente y la experiencia continúa digitalmente
               </h1>
               <p style={{ marginTop: '1.2rem', fontSize: '1.08rem', maxWidth: '38rem', opacity: 0.82 }}>
-                Hilo Circular funciona como un trueque cuidado: publicas, propones, coordinas y calificas. Sin comprar
-                prendas nuevas y con la posibilidad de que todo llegue hasta tu casa.
+                Hilo Circular combina tres espacios digitales y uno presencial. En TikTok e Instagram te encuentras con
+                el reto; el micrositio muestra la evidencia; WhatsApp coordina cupos y trueques; y el taller relámpago
+                es el único lugar donde la prenda pasa realmente de un estado a otro.
               </p>
               <div className="hero-acciones" style={{ marginTop: '1.8rem' }}>
-                <Boton to="/registro" tamano="lg">Empezar mi primer intercambio</Boton>
-                <Boton to="/catalogo" variante="fantasma" tamano="lg">Ver qué hay disponible</Boton>
+                <Boton to="/registro" tamano="lg">Empezar mi primer ciclo</Boton>
+                <Boton to="/domicilio" variante="fantasma" tamano="lg">Ver talleres y entregas</Boton>
               </div>
             </div>
             <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
@@ -51,7 +62,11 @@ export default function ComoFunciona() {
 
       <Seccion tono="oscuro">
         <div className="contenedor">
-          <TituloSeccion ceja="Paso a paso" titulo="Tres momentos y la prenda vuelve a circular" />
+          <TituloSeccion
+            ceja="El ciclo"
+            titulo="Cuatro pasos para convertir una prenda olvidada en comunidad"
+            texto="El modelo se mueve en un ciclo de cuatro pasos que transforma a la persona de consumidora pasiva en co-creadora."
+          />
           <div className="pasos">
             {PASOS.map((p, i) => (
               <Aparece key={p.titulo}>
@@ -71,17 +86,18 @@ export default function ComoFunciona() {
       <Seccion tono="niebla">
         <div className="contenedor">
           <TituloSeccion
-            ceja="Reglas del juego"
-            titulo="Seis acuerdos que sostienen la comunidad"
-            texto="No son condiciones legales: son las normas que hacen que el intercambio se sienta seguro y justo."
+            ceja="Niveles de participación"
+            titulo="Cada nivel es un alivio, no un compromiso de una sola vez"
+            texto="No todas las personas se comprometen desde el primer contacto. La participación se diseña como una escalera progresiva: cada paso exige un poco más, sin que nadie sienta que debe dar un gran salto."
           />
-          <div className="rejilla tres">
-            {REGLAS.map((r, i) => (
-              <Aparece key={r.titulo} retraso={i * 70}>
-                <article className="tarjeta" style={{ height: '100%' }}>
-                  <Etiqueta tono="lavanda">{`Regla ${i + 1}`}</Etiqueta>
-                  <h3 style={{ marginTop: '0.8rem' }}>{r.titulo}</h3>
-                  <p style={{ opacity: 0.78 }}>{r.texto}</p>
+          <div className="niveles-rejilla">
+            {NIVELES.map((n, i) => (
+              <Aparece key={n.nombre} retraso={i * 70}>
+                <article className="nivel-tarjeta">
+                  <span className="nivel-num">{i + 1}</span>
+                  <h3>{n.nombre}</h3>
+                  <p className="nivel-validacion">“{n.validacion}”</p>
+                  <p className="nivel-detalle">{n.detalle}</p>
                 </article>
               </Aparece>
             ))}
@@ -91,23 +107,93 @@ export default function ComoFunciona() {
 
       <Seccion tono="claro">
         <div className="contenedor">
-          <div className="rejilla dos" style={{ alignItems: 'start' }}>
-            <div className="perfil-comunidad tarjeta-form">
-              <TituloSeccion
-                ceja="Tu perfil"
-                titulo="Una identidad sencilla para cada persona"
-                texto="Al registrarte, Hilo Circular genera un avatar circular con las iniciales de tu nombre. Así tu perfil se reconoce fácilmente en solicitudes, mensajes y reseñas."
-              />
-              <div className="perfil-ejemplos">
-                <div><Avatar nombre="Valentina Ríos" tamano={64} /><b>Valentina Ríos</b><small>VR · Medellín</small></div>
-                <div><Avatar nombre="Mateo Cárdenas" tamano={64} /><b>Mateo Cárdenas</b><small>MC · Medellín</small></div>
-                <div><Avatar nombre="Sara Betancur" tamano={64} /><b>Sara Betancur</b><small>SB · Medellín</small></div>
-              </div>
-              <p className="perfil-comunidad-nota">No necesitas subir una foto para tener un perfil identificable. Las iniciales usan una paleta de la marca y mantienen la forma circular en todos los tamaños.</p>
-            </div>
+          <TituloSeccion
+            ceja="Los principios"
+            titulo="Cuatro reglas que sostienen la experiencia"
+            texto="No son condiciones legales: son los principios con los que Hilo Circular se acerca a su público sin imponer un cambio de mentalidad desde el primer día."
+          />
+          <div className="rejilla dos">
+            {PRINCIPIOS.map((pr, i) => (
+              <Aparece key={pr.nombre} retraso={i * 70}>
+                <article className="tarjeta" style={{ height: '100%' }}>
+                  <Etiqueta tono="lavanda">{`Principio ${i + 1}`}</Etiqueta>
+                  <h3 style={{ marginTop: '0.8rem' }}>{pr.nombre}</h3>
+                  <p style={{ opacity: 0.78 }}>{pr.texto}</p>
+                </article>
+              </Aparece>
+            ))}
+          </div>
+        </div>
+      </Seccion>
 
+      <Seccion tono="niebla">
+        <div className="contenedor">
+          <TituloSeccion
+            ceja="Un ecosistema de cuatro espacios"
+            titulo="Cada plataforma cumple una función distinta"
+            texto="Para que el proyecto tenga presencia digital y análoga, los canales trabajan de manera coordinada en lugar de repetir el mismo mensaje."
+          />
+          <div className="rejilla dos">
+            {CANALES.map((c, i) => (
+              <Aparece key={c.nombre} retraso={i * 70}>
+                <article className="canal-tarjeta">
+                  <span className="canal-indice" aria-hidden="true">{`0${i + 1}`}</span>
+                  <div>
+                    <h3>{c.nombre}</h3>
+                    <p>{c.texto}</p>
+                  </div>
+                </article>
+              </Aparece>
+            ))}
+          </div>
+
+          <div style={{ marginTop: '3.4rem' }}>
+            <TituloSeccion
+              ceja="Rutas de entrada"
+              titulo="¿Cuánto cuesta y cuánto tiempo requiere?"
+              texto="El proyecto reconoce cuatro perfiles con necesidades distintas. La ruta más cara no es la única forma de participar."
+            />
+            <div className="tabla-envoltorio">
+              <table className="tabla">
+                <thead>
+                  <tr>
+                    <th>Perfil</th>
+                    <th>Acción</th>
+                    <th>Costo</th>
+                    <th>Tiempo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {RUTAS.map((r) => (
+                    <tr key={r.perfil}>
+                      <td><b>{r.perfil}</b></td>
+                      <td>{r.accion}</td>
+                      <td>{r.costo}</td>
+                      <td>{r.tiempo}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </Seccion>
+
+      <Seccion tono="claro">
+        <div className="contenedor">
+          <div className="rejilla dos" style={{ alignItems: 'start' }}>
+            <div>
+              <TituloSeccion
+                ceja="Preguntas frecuentes"
+                titulo="Lo que necesitas saber antes del primer taller"
+                texto="Sin letra menuda: costos, tiempos y evidencia del impacto, tal como lo respondieron las personas que participaron en la investigación."
+              />
+              <div className="tarjeta-info">
+                <b>Dato de la encuesta</b>
+                <p>El 88,2 % participaría en el reto digital y el 72,9 % se motivaría más si detrás hay un aliado real y visible.</p>
+              </div>
+            </div>
             <div className="tarjeta-form">
-              <h2 style={{ fontSize: '1.8rem' }}>Preguntas frecuentes</h2>
               <div className="acordeon">
                 {PREGUNTAS.map((q, i) => (
                   <div key={q.p} className={`acordeon-item ${abierta === i ? 'abierta' : ''}`}>
@@ -128,13 +214,14 @@ export default function ComoFunciona() {
         <div className="contenedor">
           <div className="rejilla dos" style={{ alignItems: 'center' }}>
             <div>
-              <h2 style={{ fontSize: 'clamp(2rem, 4.4vw, 3.2rem)' }}>¿Listo para el primer trueque?</h2>
+              <h2 style={{ fontSize: 'clamp(2rem, 4.4vw, 3.2rem)' }}>No te pedimos comprar menos</h2>
               <p style={{ marginTop: '1rem', maxWidth: '34rem', opacity: 0.92 }}>
-                Sube una prenda hoy y en menos de una semana tendrás propuestas de personas de tu ciudad.
+                Te damos un sistema para que esa ropa olvidada sea tu entrada a una comunidad. Empieza con el reto
+                digital y en menos de una hora ya estarás reparando, transformando o intercambiando.
               </p>
               <div className="hero-acciones" style={{ marginTop: '1.8rem' }}>
                 <Boton variante="claro" tamano="lg" to="/subir">Subir mi primera prenda</Boton>
-                <Boton variante="fantasma" tamano="lg" to="/resenas">Leer experiencias reales</Boton>
+                <Boton variante="fantasma" tamano="lg" to="/nosotros">Conocer al equipo</Boton>
               </div>
             </div>
             <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>

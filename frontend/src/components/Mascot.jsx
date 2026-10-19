@@ -9,12 +9,14 @@ const POSES = [
 /**
  * @param {string} pose  una de POSES (si no existe se usa "sentado")
  * @param {boolean} flota  animación suave de respiración
+ * @param {boolean} prioridad  carga inmediata (hero); el resto se carga al acercarse a pantalla
  * @param {string} className estilos extra (tamaño, posición)
  * @param {string} title texto alternativo
  */
 export default function Mascot({
   pose = 'sentado',
   flota = false,
+  prioridad = false,
   className = '',
   style,
   title = 'Camaleón, mascota de Hilo Circular',
@@ -28,6 +30,8 @@ export default function Mascot({
       style={style}
       draggable="false"
       decoding="async"
+      loading={prioridad ? 'eager' : 'lazy'}
+      fetchPriority={prioridad ? 'high' : 'auto'}
     />
   )
 }

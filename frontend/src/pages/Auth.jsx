@@ -201,7 +201,7 @@ export default function Auth({ modo = 'entrar' }) {
 
             <div className="auth-demo">
               <b>Cuentas de demostración</b>
-              <p>Este prototipo no tiene backend: usa estas cuentas para recorrer los paneles.</p>
+              <p>Usa estas cuentas de prueba para recorrer los paneles de la comunidad y de administración.</p>
               <div className="chips">
                 <Boton
                   type="button"

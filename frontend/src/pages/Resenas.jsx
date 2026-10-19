@@ -65,7 +65,7 @@ export default function Resenas() {
             nivel={1}
             ceja="Reseñas y reputación"
             titulo="La confianza se construye intercambio a intercambio"
-            texto="Aquí se reúnen las experiencias de la comunidad. Las reseñas se pueden responder y, si algo no cumple las normas, pasa a moderación."
+            texto="Aquí se reúnen las experiencias de la comunidad. El 60 % de las personas encuestadas confía más en los testimonios de otros participantes que en cifras aisladas, así que cada reseña se puede responder y moderar."
             accion={<Boton tamano="lg" onClick={abrirResena}>Escribir una reseña</Boton>}
           />
 
@@ -85,9 +85,9 @@ export default function Resenas() {
               ))}
             </div>
             <div style={{ display: 'grid', gap: '0.6rem' }}>
-              <Etiqueta tono="verde">94 % intercambios sin incidentes</Etiqueta>
-              <Etiqueta tono="neutro">Respuesta promedio: 5 horas</Etiqueta>
-              <Etiqueta tono="ambar">3 reseñas en moderación</Etiqueta>
+              <Etiqueta tono="verde">Solo tras un intercambio aceptado</Etiqueta>
+              <Etiqueta tono="neutro">Texto revisado antes de publicar</Etiqueta>
+              <Etiqueta tono="ambar">Una respuesta por persona</Etiqueta>
               <Boton variante="texto" onClick={() => avisar('Te avisaremos cuando haya una reseña nueva sobre ti.', 'info')}>
                 Recibir alertas de reseñas
               </Boton>
@@ -203,8 +203,8 @@ export default function Resenas() {
               <h2 style={{ fontSize: 'clamp(1.9rem, 4vw, 3rem)' }}>¿Cómo cuidamos las reseñas?</h2>
               <p style={{ marginTop: '1rem', maxWidth: '34rem' }}>
                 Solo se puede calificar después de un intercambio real, el texto pasa por revisión automática y cada
-                persona puede responder una vez. Las reseñas con lenguaje ofensivo o datos personales se revisan a mano
-                desde el panel de administración.
+                persona puede responder una vez. La evidencia visible —fotos del antes y el después, estado real de la
+                prenda— pesa más que cualquier promesa de sostenibilidad.
               </p>
               <div className="chips" style={{ marginTop: '1.4rem' }}>
                 <Etiqueta tono="claro">Solo tras un intercambio</Etiqueta>

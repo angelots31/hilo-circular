@@ -14,13 +14,13 @@ import { BARRIOS, CATEGORIAS, CIUDAD, ESTADOS, TALLAS } from '../lib/seed.js'
 import { descargarJSON } from '../lib/descargas.js'
 
 const SECCIONES = [
-  { valor: 'resumen', texto: 'Resumen', icono: '▦' },
-  { valor: 'prendas', texto: 'Mis prendas', icono: '◧' },
-  { valor: 'intercambios', texto: 'Intercambios', icono: '⇄' },
-  { valor: 'envios', texto: 'Envíos', icono: '➜' },
-  { valor: 'resenas', texto: 'Reseñas', icono: '★' },
-  { valor: 'favoritos', texto: 'Favoritos', icono: '♥' },
-  { valor: 'ajustes', texto: 'Ajustes', icono: '⚙' },
+  { valor: 'resumen', texto: 'Resumen', icono: 'resumen' },
+  { valor: 'prendas', texto: 'Mis prendas', icono: 'prendas' },
+  { valor: 'intercambios', texto: 'Intercambios', icono: 'intercambios' },
+  { valor: 'envios', texto: 'Envíos', icono: 'envios' },
+  { valor: 'resenas', texto: 'Reseñas', icono: 'resenas' },
+  { valor: 'favoritos', texto: 'Favoritos', icono: 'favoritos' },
+  { valor: 'ajustes', texto: 'Ajustes', icono: 'ajustes' },
 ]
 
 const ESTADOS_SEGUIMIENTO = ['Preparando', 'En camino', 'Entregado']
@@ -317,7 +317,7 @@ export default function Panel({ seccion = 'resumen' }) {
                     <h2 style={{ fontSize: '1.7rem' }}>Mis envíos</h2>
                     <p>Cada envío tiene guía, transportadora y tres estados.</p>
                   </div>
-                  <Boton to="/domicilio" variante="fantasma">Ver tarifas de domicilio</Boton>
+                  <Boton to="/domicilio" variante="fantasma">Ver talleres y entregas</Boton>
                 </div>
 
                 <div className="datos-rejilla panel-envios-resumen">

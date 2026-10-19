@@ -6,7 +6,7 @@ const SUGERENCIAS = [
   { to: '/catalogo', texto: 'Catálogo completo' },
   { to: '/como-funciona', texto: 'Cómo funciona el intercambio' },
   { to: '/resenas', texto: 'Reseñas de la comunidad' },
-  { to: '/domicilio', texto: 'Domicilio y entregas' },
+  { to: '/domicilio', texto: 'Talleres y entregas' },
 ]
 
 export default function NoEncontrada({ ruta }) {

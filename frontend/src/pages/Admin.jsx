@@ -12,13 +12,13 @@ import { actividad, porCategoria } from '../lib/seed.js'
 import { descargarCSV, descargarPDF, parsearCSV } from '../lib/descargas.js'
 
 const SECCIONES = [
-  { valor: 'resumen', texto: 'Resumen', icono: '▦' },
-  { valor: 'prendas', texto: 'Prendas', icono: '◧' },
-  { valor: 'usuarios', texto: 'Usuarios', icono: '☺' },
-  { valor: 'envios', texto: 'Envíos', icono: '➜' },
-  { valor: 'resenas', texto: 'Reseñas', icono: '★' },
-  { valor: 'reportes', texto: 'Reportes', icono: '⚑' },
-  { valor: 'configuracion', texto: 'Configuración', icono: '⚙' },
+  { valor: 'resumen', texto: 'Resumen', icono: 'resumen' },
+  { valor: 'prendas', texto: 'Prendas', icono: 'prendas' },
+  { valor: 'usuarios', texto: 'Usuarios', icono: 'usuarios' },
+  { valor: 'envios', texto: 'Envíos', icono: 'envios' },
+  { valor: 'resenas', texto: 'Reseñas', icono: 'resenas' },
+  { valor: 'reportes', texto: 'Reportes', icono: 'reportes' },
+  { valor: 'configuracion', texto: 'Configuración', icono: 'configuracion' },
 ]
 
 const CLAVES_GRAFICA = [

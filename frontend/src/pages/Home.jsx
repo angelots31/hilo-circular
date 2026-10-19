@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import Mascot from '../components/Mascot.jsx'
 import { Estrella, Puntos, Trebol } from '../components/Adornos.jsx'
 import PrendaCard from '../components/PrendaCard.jsx'
-import { Aparece, Boton, Estrellas, Seccion, TituloSeccion } from '../components/ui.jsx'
+import { Aparece, Boton, Seccion, TituloSeccion } from '../components/ui.jsx'
 import { useStore } from '../lib/store.jsx'
-import { ESLOGAN, FORMAS, PASOS, TESTIMONIOS } from '../lib/seed.js'
+import { CIFRAS, ESLOGAN, FORMAS, PASOS, VOCES } from '../lib/seed.js'
 
 const DESTELLO = 'M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z'
 
@@ -16,25 +17,27 @@ function Destello({ className }) {
 }
 
 export default function Home() {
-  const { prendas, resenas, buscarUsuario, usuario } = useStore()
+  const { prendas, usuario } = useStore()
+  const [ligero] = useState(() => typeof matchMedia === 'function' && matchMedia('(max-width: 900px)').matches)
   const destacadas = prendas.filter((p) => p.destacada && p.disponible).slice(0, 3)
   const ultimas = [...prendas].sort((a, b) => (a.creada < b.creada ? 1 : -1)).slice(0, 6)
-  const mejores = [...resenas].sort((a, b) => b.estrellas - a.estrellas).slice(0, 2)
 
   return (
     <>
       <Seccion tono="claro" className="hero">
         <div className="trama" aria-hidden="true" />
-        <div className="hero-formas" aria-hidden="true">
-          <Destello className="d1" />
-          <Destello className="d2" />
-          <Destello className="d3" />
-          <span className="adorno trebol h-t1"><Trebol n={1} /></span>
-          <span className="adorno trebol h-t2"><Trebol n={2} /></span>
-          <span className="adorno puntos h-p"><Puntos /></span>
-          <span className="adorno estrella h-e1"><Estrella /></span>
-          <span className="adorno estrella h-e2"><Estrella /></span>
-        </div>
+        {!ligero && (
+          <div className="hero-formas" aria-hidden="true">
+            <Destello className="d1" />
+            <Destello className="d2" />
+            <Destello className="d3" />
+            <span className="adorno trebol h-t1"><Trebol n={1} /></span>
+            <span className="adorno trebol h-t2"><Trebol n={2} /></span>
+            <span className="adorno puntos h-p"><Puntos /></span>
+            <span className="adorno estrella h-e1"><Estrella /></span>
+            <span className="adorno estrella h-e2"><Estrella /></span>
+          </div>
+        )}
         <div className="contenedor">
           <div className="hero-rejilla">
             <div>
@@ -46,24 +49,28 @@ export default function Home() {
                 Dale otra vuelta a tu clóset, <em>sin comprar nada nuevo</em>
               </h1>
               <p className="hero-lead">
-                Hilo Circular es la comunidad donde subes las prendas que ya no usas, encuentras las que sí quieres y
-                coordinas el domicilio hasta tu casa. Cada intercambio le da una vida más a la ropa.
+                Hilo Circular es una experiencia <b>phygital</b> para jóvenes universitarios de Medellín: un reto en
+                TikTok o Instagram, talleres relámpago de 15 a 60 minutos y una comunidad que repara, transforma e
+                intercambia. Sin sermones y sin gastar de más.
               </p>
               <div className="hero-acciones">
                 <Boton to={usuario ? '/panel' : '/entrar'} variante="lavanda" tamano="lg">
                   {usuario ? 'Ir a mi panel' : 'Entrar'}
                 </Boton>
+                <Boton to="/como-funciona" variante="fantasma" tamano="lg">Cómo funciona</Boton>
               </div>
               <div className="hero-datos">
-                <div className="hero-dato"><b>2.480</b><span>prendas en circulación</span></div>
-                <div className="hero-dato"><b>1.130</b><span>intercambios completados</span></div>
-                <div className="hero-dato"><b>1</b><span>ciudad: Medellín</span></div>
-                <div className="hero-dato"><b>4,8 / 5</b><span>valoración de la comunidad</span></div>
+                {CIFRAS.map((c) => (
+                  <div className="hero-dato" key={c.texto}>
+                    <b>{c.valor}</b>
+                    <span>{c.texto}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
             <div className="hero-mascota">
-              <Mascot pose="sentado" title="Camaleón de Hilo Circular" />
+              <Mascot pose="sentado" title="Camaleón de Hilo Circular" prioridad />
             </div>
           </div>
         </div>
@@ -73,7 +80,7 @@ export default function Home() {
         <div className="marquesina-fila">
           {[0, 1].map((vuelta) => (
             <span key={vuelta}>
-              <b>Intercambia</b> · <b>Transforma</b> · <b>Repara</b> · <b>Reutiliza</b> · <b>Comparte</b> · <b>Descubre</b>
+              <b>Repara</b> · <b>Transforma</b> · <b>Intercambia</b> · <b>Comparte</b> · <b>Descubre</b> · <b>Reutiliza</b>
             </span>
           ))}
         </div>
@@ -83,12 +90,12 @@ export default function Home() {
         <div className="contenedor">
           <TituloSeccion
             ceja="Cómo funciona"
-            titulo="Tres pasos y la prenda empieza a girar"
-            texto="Un ciclo sencillo y transparente: publicas, encuentras a alguien que quiere lo que tienes y coordinamos la entrega."
-            accion={<Boton to="/como-funciona" variante="fantasma">Ver reglas del intercambio</Boton>}
+            titulo="El ciclo empieza con una prenda olvidada"
+            texto="No te pedimos comprar menos: te damos un sistema para que esa ropa olvidada sea tu entrada a una comunidad. Un reto en redes, un taller corto y una etiqueta con QR que cuenta el impacto."
+            accion={<Boton to="/como-funciona" variante="fantasma">Ver el ciclo completo</Boton>}
           />
           <div className="rejilla tres">
-            {PASOS.map((paso, i) => (
+            {PASOS.slice(0, 3).map((paso, i) => (
               <Aparece key={paso.titulo} retraso={i * 90}>
                 <article className="tarjeta tarjeta-fluida" style={{ height: '100%' }}>
                   <span className="paso-num">{`0${i + 1}`}</span>
@@ -104,9 +111,9 @@ export default function Home() {
       <Seccion tono="claro" id="destacadas">
         <div className="contenedor">
           <TituloSeccion
-            ceja="Catálogo destacado"
-            titulo="Prendas que están buscando un nuevo hogar"
-            texto="Seleccionamos cada semana las prendas mejor descritas y con mejores fotos de la comunidad."
+            ceja="Catálogo de la comunidad"
+            titulo="Prendas que buscan otra historia"
+            texto="Cada pieza pertenece a alguien de la comunidad universitaria de Medellín. Puedes intercambiarla, repararla o transformarla en un taller relámpago."
             accion={<Boton to="/catalogo">Ver todo el catálogo</Boton>}
           />
           <div className="catalogo-rejilla">
@@ -139,9 +146,9 @@ export default function Home() {
                 Un camaleón que se adapta, igual que tus prendas
               </h2>
               <p style={{ marginTop: '1.2rem', maxWidth: '36rem', opacity: 0.85 }}>
-                Las formas líquidas hablan de transformación, los destellos de nuevas posibilidades y la trama de puntos
-                del ciclo que se repite. La mascota cambia de color según el fondo: así representamos la capacidad de la
-                ropa de adquirir nuevos usos sin dejar de ser la misma.
+                El camaleón representa la adaptación y la transformación, los conceptos centrales del proyecto. Su
+                capacidad de cambiar refleja cómo una prenda puede adquirir nuevos usos, formas y estilos en lugar de
+                ser desechada, y conecta con un público joven, creativo y diverso.
               </p>
               <div className="rejilla tres" style={{ marginTop: '2.4rem' }}>
                 {FORMAS.map((f, i) => (
@@ -163,7 +170,7 @@ export default function Home() {
                 ))}
               </div>
               <div style={{ marginTop: '2.4rem' }}>
-                <Boton to="/nosotros" variante="claro">Conocer la marca y la paleta</Boton>
+                <Boton to="/nosotros" variante="claro">Conocer la marca</Boton>
               </div>
             </div>
             <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
@@ -176,38 +183,21 @@ export default function Home() {
       <Seccion tono="rosa">
         <div className="contenedor">
           <TituloSeccion
-            ceja="Lo que dicen"
-            titulo="Personas reales con prendas que volvieron a usarse"
-            accion={<Boton to="/resenas" variante="claro">Leer todas las reseñas</Boton>}
+            ceja="Voces del proyecto"
+            titulo="La moda circular ya tiene quien la respalde"
+            texto="Investigación académica, comercio de segunda mano y oficios locales: tres miradas que sostienen la propuesta de Hilo Circular."
           />
           <div className="rejilla tres">
-            {TESTIMONIOS.map((t, i) => (
-              <Aparece key={t.autor} retraso={i * 90}>
-                <article className="tarjeta" style={{ height: '100%' }}>
-                  <Estrellas valor={5} />
-                  <p style={{ margin: '0.9rem 0 1.1rem' }}>«{t.texto}»</p>
-                  <p style={{ fontSize: '0.85rem', opacity: 0.72 }}>{t.autor} · {t.ciudad}</p>
+            {VOCES.map((v, i) => (
+              <Aparece key={v.autor} retraso={i * 90}>
+                <article className="tarjeta tarjeta-voz" style={{ height: '100%' }}>
+                  <span className="voz-comilla" aria-hidden="true">“</span>
+                  <p style={{ margin: '0.2rem 0 1.1rem' }}>{v.texto}</p>
+                  <p style={{ fontSize: '0.88rem' }}><b>{v.autor}</b></p>
+                  <p style={{ fontSize: '0.82rem', opacity: 0.72 }}>{v.ciudad}</p>
                 </article>
               </Aparece>
             ))}
-          </div>
-
-          <div className="rejilla dos" style={{ marginTop: '3rem' }}>
-            {mejores.map((r) => {
-              const autor = buscarUsuario(r.autorId)
-              const prenda = prendas.find((p) => p.id === r.prendaId)
-              return (
-                <Aparece key={r.id}>
-                  <article className="tarjeta" style={{ height: '100%' }}>
-                    <Estrellas valor={r.estrellas} />
-                    <p style={{ margin: '0.8rem 0' }}>«{r.texto}»</p>
-                    <p style={{ fontSize: '0.85rem', opacity: 0.75 }}>
-                      {autor?.nombre} intercambió <b>{prenda?.titulo}</b>
-                    </p>
-                  </article>
-                </Aparece>
-              )
-            })}
           </div>
         </div>
       </Seccion>
@@ -218,15 +208,15 @@ export default function Home() {
             <div>
               <p className="ceja">Únete</p>
               <h2 style={{ fontSize: 'clamp(2rem, 4.4vw, 3.2rem)' }}>
-                Tu próxima prenda favorita ya está en el clóset de alguien más
+                Esa prenda que no usas puede ser la entrada a tu próxima comunidad
               </h2>
               <p style={{ marginTop: '1.1rem', maxWidth: '34rem', opacity: 0.8 }}>
-                Crear la cuenta toma un minuto: registras tu perfil en Medellín, subes la primera prenda y empiezas a recibir
-                solicitudes. El domicilio lo coordinamos nosotros.
+                Hilo Circular responde al ODS 12 con acciones concretas: crear la cuenta toma un minuto, subir la
+                primera prenda es gratis y el taller más cercano queda a pocos minutos de tu universidad.
               </p>
               <div className="hero-acciones" style={{ marginTop: '1.8rem' }}>
                 <Boton to="/registro" tamano="lg">Crear mi cuenta</Boton>
-                <Boton to="/domicilio" variante="fantasma" tamano="lg">Ver cobertura de domicilio</Boton>
+                <Boton to="/domicilio" variante="fantasma" tamano="lg">Ver talleres y entregas</Boton>
               </div>
             </div>
             <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>

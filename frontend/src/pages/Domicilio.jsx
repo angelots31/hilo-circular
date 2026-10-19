@@ -3,7 +3,7 @@ import Mascot from '../components/Mascot.jsx'
 import { Aparece, Boton, Campo, Etiqueta, Seccion, Selector, TituloSeccion, Modal } from '../components/ui.jsx'
 import { href, navigate, useRoute } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
-import { CIUDADES } from '../lib/seed.js'
+import { CIUDADES, TALLERES } from '../lib/seed.js'
 
 const PASOS_ENVIO = [
   { titulo: 'Acuerdan el intercambio', texto: 'Ambas partes aceptan la propuesta y se habilita la coordinación del envío.' },
@@ -17,11 +17,11 @@ const ESTADOS_SEGUIMIENTO = ['Preparando', 'En camino', 'Entregado']
 const TARIFAS = { Medellín: 10900 }
 const TARIFAS_EXTRA = { Medellín: 0 }
 
-// Referencias de zonas para coordinar un encuentro; no representan comercios aliados confirmados.
+// Referencias de zonas para coordinar un encuentro cerca de los campus y barrios del proyecto.
 const PUNTOS = [
-  { nombre: 'Zona El Poblado', direccion: 'Lugar público acordado por el chat', ciudad: 'Medellín', horario: 'Horario a coordinar' },
-  { nombre: 'Zona Laureles-Estadio', direccion: 'Lugar público acordado por el chat', ciudad: 'Medellín', horario: 'Horario a coordinar' },
-  { nombre: 'Zona Centro', direccion: 'Lugar público acordado por el chat', ciudad: 'Medellín', horario: 'Horario a coordinar' },
+  { nombre: 'Robledo · Campus universitario', direccion: 'Parque o plaza pública acordada en la comunidad', ciudad: 'Medellín', horario: 'Taller relámpago · horario por confirmar' },
+  { nombre: 'Castilla · Parque barrial', direccion: 'Punto de encuentro público acordado por WhatsApp', ciudad: 'Medellín', horario: 'Taller relámpago · horario por confirmar' },
+  { nombre: 'Centro · Plaza pública', direccion: 'Punto de encuentro público acordado por WhatsApp', ciudad: 'Medellín', horario: 'Taller relámpago · horario por confirmar' },
 ]
 
 export default function Domicilio() {
@@ -89,13 +89,14 @@ export default function Domicilio() {
         <div className="contenedor">
           <div className="rejilla dos" style={{ alignItems: 'center' }}>
             <div>
-              <p className="ceja">Domicilio y entregas</p>
+              <p className="ceja">Talleres y entregas</p>
               <h1 style={{ fontSize: 'clamp(2.3rem, 5.6vw, 4.2rem)' }}>
-                La prenda va hasta tu puerta, con guía y seguimiento
+                Repara, transforma o intercambia en menos de una hora
               </h1>
               <p style={{ marginTop: '1.2rem', fontSize: '1.06rem', maxWidth: '36rem', opacity: 0.82 }}>
-                Coordinamos la recolección en casa u oficina, empacamos con material reutilizado y te compartimos la guía
-                para seguir el recorrido. Si prefieres, también puedes acordar un punto de encuentro sin costo.
+                Los talleres relámpago ocurren cerca de tu universidad o de tu casa, en formatos de 15 a 60 minutos y
+                con un facilitador modista. Si no puedes asistir, coordinamos la entrega de la prenda o un punto de
+                encuentro sin costo.
               </p>
               <div className="hero-acciones" style={{ marginTop: '1.8rem' }}>
                 <Boton tamano="lg" onClick={abrirEnvio}>Programar un envío</Boton>
@@ -107,6 +108,24 @@ export default function Domicilio() {
             <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
               <Mascot pose="camina" />
             </div>
+          </div>
+
+          <div className="rejilla tres" style={{ marginTop: '3.4rem' }}>
+            {TALLERES.map((t, i) => (
+              <Aparece key={t.nombre} retraso={i * 80}>
+                <article className="tarjeta taller-tarjeta" style={{ height: '100%' }}>
+                  <span className="taller-indice" aria-hidden="true">{`0${i + 1}`}</span>
+                  <h3 style={{ marginTop: '0.7rem' }}>{t.nombre}</h3>
+                  <p style={{ opacity: 0.78 }}>{t.texto}</p>
+                </article>
+              </Aparece>
+            ))}
+          </div>
+          <div className="chips" style={{ marginTop: '1.8rem' }}>
+            <Etiqueta tono="lavanda">15 a 60 minutos</Etiqueta>
+            <Etiqueta tono="neutro">Facilitador modista</Etiqueta>
+            <Etiqueta tono="rosa">Kits y materiales del aliado</Etiqueta>
+            <Etiqueta tono="verde">Etiqueta con QR de impacto</Etiqueta>
           </div>
 
           <div className="envio-pasos" style={{ marginTop: '4rem' }}>
@@ -284,14 +303,15 @@ export default function Domicilio() {
           </div>
           <div className="rejilla dos" style={{ marginTop: '3rem', alignItems: 'center' }}>
             <div>
-              <h2 style={{ fontSize: 'clamp(1.8rem, 3.6vw, 2.6rem)' }}>Empaques que también circulan</h2>
+              <h2 style={{ fontSize: 'clamp(1.8rem, 3.6vw, 2.6rem)' }}>La entrega también hace parte del ciclo</h2>
               <p style={{ marginTop: '1rem', maxWidth: '34rem', opacity: 0.92 }}>
-                Reutilizamos bolsas, cajas y papel de la comunidad. Si tienes empaques guardados, entrégalos al
-                recolector y entran de nuevo al ciclo. Cada envío reutilizado nos ahorra plástico nuevo.
+                Si no puedes llegar al taller, acordamos un punto de encuentro o la recolección en tu casa. Cada prenda
+                viaja con su etiqueta QR para que el impacto del intercambio quede documentado y se pueda compartir.
               </p>
               <div className="chips" style={{ marginTop: '1.4rem' }}>
-                <Etiqueta tono="claro">62 % de empaques reutilizados</Etiqueta>
-                <Etiqueta tono="claro">Cero plástico de un solo uso</Etiqueta>
+                <Etiqueta tono="claro">Etiquetas con QR</Etiqueta>
+                <Etiqueta tono="claro">Kits del aliado</Etiqueta>
+                <Etiqueta tono="claro">Cupos por WhatsApp</Etiqueta>
               </div>
             </div>
             <div className="empaques-mascota mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
