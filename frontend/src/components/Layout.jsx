@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import Mascot from './Mascot.jsx'
 import Icono from './Iconos.jsx'
 import { Avatar, Boton, Etiqueta } from './ui.jsx'
 import { href, useRoute } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
-import { ESLOGAN, REDES } from '../lib/seed.js'
+import { ESLOGAN, REDES, SITIO_URL } from '../lib/seed.js'
 
 const ENLACES = [
   { to: '/', texto: 'Inicio' },
@@ -52,7 +51,7 @@ export function Encabezado() {
   return (
     <header className={`cabecera ${pegada ? 'pegada' : ''}`}>
       <a className="marca clicable" href={href('/')} data-cursor="inicio">
-        <Mascot pose="sentado" className="marca-mascota" />
+        <img className="marca-logo" src="/icono-redondo.png" alt="" width="42" height="42" decoding="async" />
         <span className="marca-texto">
           <b>Hilo Circular</b>
           <small>{ESLOGAN}</small>
@@ -174,7 +173,7 @@ export function Pie() {
       <div className="pie-rejilla">
         <div className="pie-marca">
           <div className="pie-marca-cabeza">
-            <img className="pie-logo" src="/mascota/icono.jpg" alt="" width="44" height="44" loading="lazy" decoding="async" />
+            <img className="pie-logo" src="/icono-redondo.png" alt="" width="44" height="44" loading="lazy" decoding="async" />
             <h2>Hilo Circular</h2>
           </div>
           <p className="pie-eslogan">{ESLOGAN}</p>
@@ -238,6 +237,27 @@ export function Pie() {
             </a>
           ))}
           <p className="pie-redes-nota">Retos, antes y después, y la agenda de talleres relámpago.</p>
+
+          <a
+            className="pie-qr"
+            href={SITIO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Abrir Hilo Circular en el celular desde el código QR"
+          >
+            <img
+              src="/qr-hilo-circular.svg"
+              alt="Código QR para entrar a Hilo Circular desde el celular"
+              width="72"
+              height="72"
+              loading="lazy"
+              decoding="async"
+            />
+            <span>
+              <b>Escanéame</b>
+              <small>hilo-circular.vercel.app</small>
+            </span>
+          </a>
         </div>
       </div>
 

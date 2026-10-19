@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import Mascot from './Mascot.jsx'
 import Icono from './Iconos.jsx'
 import { Avatar } from './ui.jsx'
 import { href, navigate } from '../lib/router.jsx'
@@ -36,7 +35,7 @@ export default function PanelShell({
 
       <aside className={`panel-lateral${abierto ? ' abierto' : ''}`} aria-label={`Menú de ${ceja}`}>
         <a className="panel-marca" href={href('/')} title="Ir al sitio">
-          <Mascot pose="sentado" className="panel-marca-mascota" title="" />
+          <img className="panel-marca-mascota" src="/icono-redondo.png" alt="" width="38" height="38" decoding="async" />
           <span>
             <b>Hilo Circular</b>
             <small>{ceja}</small>

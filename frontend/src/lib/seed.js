@@ -17,6 +17,9 @@ export const METODOS_ENVIO = ['Domicilio', 'Punto de encuentro']
 
 export const ESLOGAN = '¡Lo que ya tienes también es moda!'
 
+// Dirección pública que codifica el QR del pie de página.
+export const SITIO_URL = 'https://hilo-circular.vercel.app'
+
 export const REDES = [
   {
     nombre: 'Instagram',

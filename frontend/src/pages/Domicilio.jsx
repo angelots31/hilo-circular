@@ -163,16 +163,29 @@ export default function Domicilio() {
                 </Selector>
               </Campo>
 
-              <Campo etiqueta={`Prendas en el envío: ${prendasEnvio}`} ayuda="A partir de la segunda prenda aplicamos descuento." id="cantidad">
-                <input
-                  id="cantidad"
-                  className="control-rango"
-                  type="range"
-                  min="1"
-                  max="5"
-                  value={prendasEnvio}
-                  onChange={(e) => setPrendasEnvio(Number(e.target.value))}
-                />
+              <Campo etiqueta="Prendas en el envío" ayuda="A partir de la segunda prenda aplicamos descuento." id="cantidad">
+                <div className="rango-envoltorio">
+                  <p className="rango-valor">
+                    <b>{prendasEnvio}</b>
+                    <span>{prendasEnvio === 1 ? 'prenda' : 'prendas'}</span>
+                  </p>
+                  <input
+                    id="cantidad"
+                    className="control-rango"
+                    type="range"
+                    min="1"
+                    max="5"
+                    value={prendasEnvio}
+                    onChange={(e) => setPrendasEnvio(Number(e.target.value))}
+                    aria-valuetext={`${prendasEnvio} ${prendasEnvio === 1 ? 'prenda' : 'prendas'}`}
+                    style={{ '--avance': `${((prendasEnvio - 1) / 4) * 100}%` }}
+                  />
+                  <div className="rango-marcas" aria-hidden="true">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <span key={n} className={n <= prendasEnvio ? 'activo' : ''}>{n}</span>
+                    ))}
+                  </div>
+                </div>
               </Campo>
 
               <div className="cotizador-resultado">
@@ -188,29 +201,27 @@ export default function Domicilio() {
 
             <div className="tarjeta-form">
               <h2 style={{ fontSize: '1.5rem' }}>Cobertura en Medellín</h2>
-              <div className="tabla-envoltorio">
-                <table className="tabla">
-                  <thead>
-                    <tr>
-                      <th>Ciudad</th>
-                      <th>Domicilio</th>
-                      <th>Punto de encuentro</th>
-                      <th>Tiempo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {CIUDADES.map((c) => (
-                      <tr key={c}>
-                        <td><b>{c}</b></td>
-                        <td>{precio(TARIFAS[c])}</td>
-                        <td>{precio(TARIFAS_EXTRA[c])}</td>
-                        <td>{TARIFAS[c] >= 14000 ? '3 a 5 días' : '2 a 4 días'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+              {CIUDADES.map((c) => (
+                <dl className="cobertura-tarifas" key={c}>
+                  <div>
+                    <dt>Ciudad</dt>
+                    <dd><b>{c}</b></dd>
+                  </div>
+                  <div>
+                    <dt>Domicilio</dt>
+                    <dd>{precio(TARIFAS[c])}</dd>
+                  </div>
+                  <div>
+                    <dt>Punto de encuentro</dt>
+                    <dd>{precio(TARIFAS_EXTRA[c])}</dd>
+                  </div>
+                  <div>
+                    <dt>Tiempo estimado</dt>
+                    <dd>{TARIFAS[c] >= 14000 ? '3 a 5 días' : '2 a 4 días'}</dd>
+                  </div>
+                </dl>
+              ))}
+              <p style={{ fontSize: '0.85rem', opacity: 0.7, marginTop: '0.9rem' }}>
                 Los tiempos se cuentan desde que ambas personas confirman el intercambio. La recolección depende de la zona y de la disponibilidad del día.
               </p>
             </div>
