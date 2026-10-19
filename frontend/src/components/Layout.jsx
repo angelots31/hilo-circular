@@ -256,17 +256,12 @@ export function Pie() {
             onClick={abrirQr}
             aria-label="Código QR de Hilo Circular para abrir la web en el celular"
           >
-            <img
-              src="/qr-hilo-circular.svg"
-              alt="Código QR para entrar a Hilo Circular desde el celular"
-              width="72"
-              height="72"
-              loading="lazy"
-              decoding="async"
-            />
-            <span>
-              <b>Escanéame</b>
-              <small>hilo-circular.vercel.app</small>
+            <span className="pie-qr-marco" aria-hidden="true">
+              <img src="/qr-hilo-circular.svg" alt="" width="68" height="68" loading="lazy" decoding="async" />
+            </span>
+            <span className="pie-qr-texto">
+              <b>Escanea</b>
+              <small>y ábrela en tu celular</small>
             </span>
           </a>
         </div>
@@ -280,9 +275,9 @@ export function Pie() {
       <Modal
         abierto={qrAbierto}
         onCerrar={() => setQrAbierto(false)}
-        titulo="Abre Hilo Circular en tu celular"
-        descripcion="Apunta la cámara del celular al código. Te llevará a la misma web que estás viendo."
-        ancho="min(26rem, 92vw)"
+        titulo="Escanea y entra desde tu celular"
+        descripcion="Apunta la cámara al código y toca el aviso que aparece. Te llevará a la misma web que estás viendo."
+        ancho="min(25rem, 92vw)"
         pie={
           <>
             <Boton variante="fantasma" onClick={() => setQrAbierto(false)}>Cerrar</Boton>
@@ -293,8 +288,14 @@ export function Pie() {
         }
       >
         <div className="qr-modal">
-          <img src="/qr-hilo-circular.svg" alt="Código QR grande de Hilo Circular" width="300" height="300" decoding="async" />
-          <p>También puedes escribir <b>hilo-circular.vercel.app</b> en el navegador del celular.</p>
+          <span className="qr-modal-ceja">Escanéame</span>
+          <div className="qr-modal-marco">
+            <img src="/qr-hilo-circular.svg" alt="Código QR grande de Hilo Circular" width="300" height="300" decoding="async" />
+          </div>
+          <a className="qr-modal-url" href={SITIO_URL} target="_blank" rel="noopener noreferrer">
+            hilo-circular.vercel.app <span aria-hidden="true">↗</span>
+          </a>
+          <p className="qr-modal-nota">También puedes escribir esa dirección en el navegador del celular.</p>
         </div>
       </Modal>
     </footer>
