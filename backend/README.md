@@ -15,9 +15,12 @@ backend/
 │   └── routes/           # auth, datos, prendas, usuarios, comunidad, uploads
 ├── sql/
 │   ├── schema.sql        # tablas, índices y checks
-│   └── seed.sql          # datos de ejemplo
+│   ├── seed.sql          # entorno real vacío (sin datos de prueba)
+│   └── seed-demo.sql     # datos de demostración para local/tests
 ├── scripts/
-│   ├── setup-db.js       # crea las tablas y carga el seed
+│   ├── setup-db.js       # crea las tablas (vacías) o carga la demo con --demo
+│   ├── crear-admin.js    # crea la primera cuenta de administración real
+│   ├── limpiar-datos.js  # borra datos de prueba
 │   └── demo-mem.js       # API con Postgres en memoria (sin instalar nada)
 ├── test/                 # node:test contra pg-mem
 ├── .env.example
@@ -52,16 +55,23 @@ punta. Los datos se descartan al cerrar.
 ```bash
 npm install
 cp .env.example .env      # y completa las variables
-npm run db:setup          # crea las tablas y carga los datos de ejemplo
+npm run db:setup          # crea las tablas y deja la base vacía
+npm run admin:crear -- --email tu@correo.com --clave "una-clave-segura" --nombre "Tu nombre"
 npm run dev               # API en http://localhost:4000
 ```
 
-`npm run db:setup` ejecuta, en orden:
+`npm run db:setup` ejecuta `sql/schema.sql` y **no inserta datos**: la
+plataforma arranca limpia para trabajar con cuentas reales. Para una demo local
+usa `npm run db:setup:demo`, que además ejecuta `sql/seed-demo.sql`.
 
-1. `sql/schema.sql` → crea todas las tablas.
-2. `sql/seed.sql` → inserta los datos de ejemplo.
+Para limpiar datos de prueba de una base existente:
 
-Cuentas demo (contraseña `demo123`):
+```bash
+npm run db:limpiar              # conserva las cuentas de administración
+npm run db:limpiar -- --todo    # borra también todas las cuentas
+```
+
+Cuentas demo (solo en modo demo, contraseña `demo123`):
 
 | Rol     | Correo                      |
 | ------- | --------------------------- |
@@ -103,9 +113,12 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 | PATCH | `/api/usuarios/:id/estado`, `/verificado` | Moderación (admin) |
 | POST/PATCH/DELETE | `/api/prendas`, `/api/prendas/:id/...` | Catálogo, disponibilidad, favoritos |
 | POST | `/api/prendas/importar` | Importar CSV (admin) |
-| POST/PATCH | `/api/intercambios`, `/api/intercambios/:id/estado` | Propuestas y respuesta |
+| POST/PATCH | `/api/intercambios`, `/api/intercambios/:id/estado` | Propuestas, aceptación y cierre del intercambio |
+| GET/POST | `/api/intercambios/:id/mensajes` | Chat privado de los participantes |
+| PATCH | `/api/notificaciones/leidas` | Marcar notificaciones como leídas |
+| POST | `/api/suscripciones` | Correo para la agenda de talleres |
 | POST/PATCH | `/api/pedidos`, `/api/pedidos/:id/estado` | Envíos y seguimiento |
-| POST/PUT/PATCH | `/api/resenas`, `/api/resenas/:id/...` | Reseñas y respuestas |
+| POST/PUT/PATCH | `/api/resenas`, `/api/resenas/:id/...` | Reseñas (solo tras un intercambio aceptado), respuestas y reportes |
 | PATCH | `/api/reportes/:id/estado` | Moderación (admin) |
 | GET | `/api/uploads/firma` | Firma para subir la imagen a Cloudinary |
 | POST | `/api/prendas/:id/vista` | Suma una visita |

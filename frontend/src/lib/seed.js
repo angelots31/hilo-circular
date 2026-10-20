@@ -204,31 +204,5 @@ export const CANALES = [
   { nombre: 'Talleres relámpago', texto: 'El único punto del ecosistema donde la prenda pasa realmente de un estado a otro: reparación, transformación o trueque.' },
 ]
 
-// Conversación de ejemplo para la vista de mensajes (todavía no hay chat en el backend).
-export const mensajes = [
-  { id: 'm1', de: 'u1', para: 'u8', texto: 'Hola Daniela, vi tu suéter de punto. ¿Sigue disponible?', hora: '09:12' },
-  { id: 'm2', de: 'u8', para: 'u1', texto: '¡Hola! Sí, sigue disponible. ¿Qué prenda ofreces?', hora: '09:20' },
-  { id: 'm3', de: 'u1', para: 'u8', texto: 'El jean recto de tiro alto, talla 38.', hora: '09:24' },
-  { id: 'm4', de: 'u8', para: 'u1', texto: 'Me sirve perfecto. Te propongo el cambio por la plataforma.', hora: '09:31' },
-]
-
-// Series para las gráficas del panel administrativo.
-export const actividad = [
-  { mes: 'Abr', prendas: 42, intercambios: 28, envios: 24 },
-  { mes: 'May', prendas: 55, intercambios: 34, envios: 31 },
-  { mes: 'Jun', prendas: 61, intercambios: 40, envios: 36 },
-  { mes: 'Jul', prendas: 74, intercambios: 52, envios: 44 },
-  { mes: 'Ago', prendas: 88, intercambios: 61, envios: 55 },
-  { mes: 'Sep', prendas: 103, intercambios: 78, envios: 69 },
-  { mes: 'Oct', prendas: 118, intercambios: 86, envios: 74 },
-]
-
-export const porCategoria = [
-  { nombre: 'Chaquetas', valor: 24 },
-  { nombre: 'Pantalones', valor: 19 },
-  { nombre: 'Vestidos', valor: 16 },
-  { nombre: 'Abrigos', valor: 13 },
-  { nombre: 'Punto', valor: 11 },
-  { nombre: 'Calzado', valor: 9 },
-  { nombre: 'Accesorios', valor: 8 },
-]
+// Las gráficas del panel administrativo se calculan con datos reales de la API
+// (prendas, intercambios y envíos), no con series de ejemplo.

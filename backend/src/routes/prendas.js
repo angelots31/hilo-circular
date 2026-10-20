@@ -26,7 +26,7 @@ async function exigeDueno(req, id) {
 // POST /api/prendas
 router.post('/', authRequerida, asincrono(async (req, res) => {
   const b = req.body || {}
-  if (String(b.titulo || '').trim().length < 6) throw errorHttp(400, 'El título debe tender al menos 6 caracteres.')
+  if (String(b.titulo || '').trim().length < 6) throw errorHttp(400, 'El título debe tener al menos 6 caracteres.')
   if (!b.categoria || !b.talla) throw errorHttp(400, 'Faltan la categoría o la talla.')
 
   const { rows } = await q(
@@ -49,11 +49,27 @@ router.post('/', authRequerida, asincrono(async (req, res) => {
       'Medellín',
       b.barrio || req.usuario.barrio || null,
       b.disponible !== false,
-      Boolean(b.destacada) && req.usuario.rol === 'admin' ? true : Boolean(b.destacada),
+      // Solo el equipo puede publicar una prenda ya destacada; el resto queda
+      // como candidata para la curaduría.
+      req.usuario.rol === 'admin' && Boolean(b.destacada),
       aArray(b.fotos, LIMITE_FOTOS),
       aArray(b.paleta, 4),
     ],
   )
+  // Si la persona pide curaduría al publicar, se crea la solicitud para el equipo.
+  if (req.usuario.rol !== 'admin' && Boolean(b.destacada)) {
+    await q(
+      "INSERT INTO reportes (tipo, motivo, prenda_id, usuario_id, estado) VALUES ('Prenda', 'Postulación a destacado', $1, $2, 'En revisión')",
+      [rows[0].id, req.usuario.id],
+    )
+    const { rows: admins } = await q("SELECT id FROM usuarios WHERE rol = 'admin' AND estado = 'activo'")
+    for (const admin of admins) {
+      await q(
+        'INSERT INTO notificaciones (usuario_id, tipo, texto, fecha, destino) VALUES ($1,$2,$3,$4,$5)',
+        [admin.id, 'sistema', `${req.usuario.nombre} postuló «${rows[0].titulo}» para el catálogo destacado.`, 'Ahora', '/admin/reportes'],
+      )
+    }
+  }
   res.status(201).json({ prenda: camelizar(rows[0]) })
 }))
 
@@ -102,8 +118,29 @@ router.patch('/:id/destacada', authRequerida, asincrono(async (req, res) => {
   if (!actual) throw errorHttp(404, 'Esa prenda no existe.')
   // Un admin puede destacar cualquier prenda; el dueño solo puede postular la suya.
   if (!esAdmin && actual.dueno_id !== req.usuario.id) throw errorHttp(403, 'Esta prenda no es tuya.')
-  const destino = typeof req.body?.valor === 'boolean' ? req.body.valor : !actual.destacada
-  const { rows } = await q('UPDATE prendas SET destacada = $2 WHERE id = $1 RETURNING *', [actual.id, destino])
+
+  const quiereDestacar = typeof req.body?.valor === 'boolean' ? req.body.valor : !actual.destacada
+  if (!esAdmin && quiereDestacar) {
+    const { rows: abiertas } = await q(
+      "SELECT id FROM reportes WHERE prenda_id = $1 AND tipo = 'Prenda' AND motivo = 'Postulación a destacado' AND estado <> 'Resuelto' LIMIT 1",
+      [actual.id],
+    )
+    if (abiertas.length) throw errorHttp(409, 'Esta prenda ya está postulada para la curaduría.')
+    await q(
+      "INSERT INTO reportes (tipo, motivo, prenda_id, usuario_id, estado) VALUES ('Prenda', 'Postulación a destacado', $1, $2, 'En revisión')",
+      [actual.id, req.usuario.id],
+    )
+    const { rows: admins } = await q("SELECT id FROM usuarios WHERE rol = 'admin' AND estado = 'activo'")
+    for (const admin of admins) {
+      await q(
+        'INSERT INTO notificaciones (usuario_id, tipo, texto, fecha, destino) VALUES ($1,$2,$3,$4,$5)',
+        [admin.id, 'sistema', `${req.usuario.nombre} postuló «${actual.titulo}» para el catálogo destacado.`, 'Ahora', '/admin/reportes'],
+      )
+    }
+    return res.json({ prenda: camelizar(actual), solicitud: true })
+  }
+
+  const { rows } = await q('UPDATE prendas SET destacada = $2 WHERE id = $1 RETURNING *', [actual.id, quiereDestacar])
   res.json({ prenda: camelizar(rows[0]) })
 }))
 

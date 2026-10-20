@@ -22,28 +22,34 @@ router.get('/', asincrono(async (req, res) => {
   let reportes = []
   let favoritos = []
   let notificaciones = []
+  let mensajes = []
 
   if (esAdmin) {
-    const [p, i, r, n] = await Promise.all([
+    const [p, i, r, n, m] = await Promise.all([
       q('SELECT * FROM pedidos ORDER BY fecha DESC, id DESC'),
       q('SELECT * FROM intercambios ORDER BY fecha DESC, id DESC'),
       q('SELECT * FROM reportes ORDER BY fecha DESC, id DESC'),
       q('SELECT * FROM notificaciones WHERE usuario_id = $1 ORDER BY creada DESC', [yo.id]),
+      q('SELECT * FROM mensajes ORDER BY creada ASC, id ASC'),
     ])
-    pedidos = p.rows; intercambios = i.rows; reportes = r.rows; notificaciones = n.rows
+    pedidos = p.rows; intercambios = i.rows; reportes = r.rows; notificaciones = n.rows; mensajes = m.rows
   } else if (yo) {
-    const [p, i, f, n] = await Promise.all([
+    const [p, i, f, n, m] = await Promise.all([
       q('SELECT * FROM pedidos WHERE usuario_id = $1 OR receptor_id = $1 ORDER BY fecha DESC, id DESC', [yo.id]),
       q('SELECT * FROM intercambios WHERE solicitante_id = $1 OR receptor_id = $1 ORDER BY fecha DESC, id DESC', [yo.id]),
       q('SELECT prenda_id FROM favoritos WHERE usuario_id = $1', [yo.id]),
       q('SELECT * FROM notificaciones WHERE usuario_id = $1 ORDER BY creada DESC', [yo.id]),
+      q(
+        `SELECT m.* FROM mensajes m
+           JOIN intercambios i ON i.id = m.intercambio_id
+          WHERE i.solicitante_id = $1 OR i.receptor_id = $1
+          ORDER BY m.creada ASC, m.id ASC`,
+        [yo.id],
+      ),
     ])
-    pedidos = p.rows; intercambios = i.rows; favoritos = f.rows.map((x) => x.prenda_id); notificaciones = n.rows
-  } else {
-    // Visitante: mostramos un par de envíos recientes como muestra del seguimiento.
-    const p = await q('SELECT * FROM pedidos ORDER BY fecha DESC, id DESC LIMIT 3')
-    pedidos = p.rows
+    pedidos = p.rows; intercambios = i.rows; favoritos = f.rows.map((x) => x.prenda_id); notificaciones = n.rows; mensajes = m.rows
   }
+  // Los visitantes no reciben envíos ni conversaciones: el seguimiento es privado.
 
   res.json({
     usuarios: usuarios.rows.map((u) => usuarioSeguro(u, Boolean(esAdmin || (yo && yo.id === u.id)))),
@@ -54,6 +60,7 @@ router.get('/', asincrono(async (req, res) => {
     reportes: camelizarFilas(reportes),
     favoritos,
     notificaciones: camelizarFilas(notificaciones),
+    mensajes: camelizarFilas(mensajes),
     usuario: yo ? usuarioSeguro(yo) : null,
   })
 }))

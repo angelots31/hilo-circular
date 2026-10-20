@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
-import Garment from '../components/Garment.jsx'
 import Mascot from '../components/Mascot.jsx'
+import PrendaMini from '../components/PrendaMini.jsx'
 import {
-  Aparece, Area, Avatar, Barra, Boton, Campo, Entrada, Estrellas, EstadoVacio,
+  Aparece, Area, Avatar, Barra, Boton, Campo, Estrellas, EstadoVacio,
   Etiqueta, Modal, Seccion, Selector, TituloSeccion,
 } from '../components/ui.jsx'
 import { navigate } from '../lib/router.jsx'
@@ -16,6 +16,9 @@ export default function Resenas() {
   const [respondiendo, setRespondiendo] = useState(null)
   const [textoRespuesta, setTextoRespuesta] = useState('')
   const [borrador, setBorrador] = useState({ paraId: '', estrellas: 5, texto: '', prendaId: '' })
+  const [alertas, setAlertas] = useState(() => {
+    try { return localStorage.getItem('hilo-alertas-resenas') === '1' } catch { return false }
+  })
 
   const visibles = useMemo(() => {
     let lista = resenas
@@ -36,7 +39,10 @@ export default function Resenas() {
       .filter((x) => ['Aceptado', 'Completado'].includes(x.estado) && (x.solicitanteId === usuario.id || x.receptorId === usuario.id))
       .map((x) => ({ paraId: x.solicitanteId === usuario.id ? x.receptorId : x.solicitanteId, prendas: [x.prendaId, x.ofreceId] }))
   }, [intercambios, usuario])
-  const candidatos = usuarios.filter((u) => relacionados.some((r) => r.paraId === u.id))
+  const candidatos = useMemo(() => {
+    const ids = [...new Set(relacionados.map((r) => r.paraId))]
+    return usuarios.filter((u) => ids.includes(u.id))
+  }, [usuarios, relacionados])
   const prendasRelacionadas = prendas.filter((p) => relacionados.some((r) => r.paraId === borrador.paraId && r.prendas.includes(p.id)))
   const abrirResena = () => {
     if (!usuario) return navigate('/entrar?volver=/resenas')
@@ -44,15 +50,20 @@ export default function Resenas() {
     setEscribir(true)
   }
 
-  const enviar = () => {
+  const [publicando, setPublicando] = useState(false)
+
+  const enviar = async () => {
     if (!borrador.paraId) return avisar('Elige a quién le quieres dejar la reseña.', 'aviso')
     if (borrador.texto.trim().length < 20) return avisar('Cuéntanos un poco más: mínimo 20 caracteres.', 'aviso')
-    publicarResena({
+    setPublicando(true)
+    const ok = await publicarResena({
       paraId: borrador.paraId,
       estrellas: borrador.estrellas,
       texto: borrador.texto,
       prendaId: borrador.prendaId || null,
     })
+    setPublicando(false)
+    if (!ok) return
     setEscribir(false)
     setBorrador({ paraId: '', estrellas: 5, texto: '', prendaId: '' })
   }
@@ -88,8 +99,16 @@ export default function Resenas() {
               <Etiqueta tono="verde">Solo tras un intercambio aceptado</Etiqueta>
               <Etiqueta tono="neutro">Texto revisado antes de publicar</Etiqueta>
               <Etiqueta tono="ambar">Una respuesta por persona</Etiqueta>
-              <Boton variante="texto" onClick={() => avisar('Te avisaremos cuando haya una reseña nueva sobre ti.', 'info')}>
-                Recibir alertas de reseñas
+              <Boton
+                variante="texto"
+                onClick={() => {
+                  const nuevo = !alertas
+                  setAlertas(nuevo)
+                  try { localStorage.setItem('hilo-alertas-resenas', nuevo ? '1' : '0') } catch { /* Sin almacenamiento, la preferencia dura la sesión. */ }
+                  avisar(nuevo ? 'Alertas de reseñas activadas en este dispositivo.' : 'Alertas de reseñas desactivadas.', nuevo ? 'ok' : 'info')
+                }}
+              >
+                {alertas ? 'Alertas de reseñas activadas' : 'Recibir alertas de reseñas'}
               </Boton>
             </div>
           </div>
@@ -142,7 +161,7 @@ export default function Resenas() {
 
                         {prenda && (
                           <a className="resena-prenda clicable" href={`#/prenda/${prenda.id}`}>
-                            <Garment tipo={prenda.tipo} paleta={prenda.paleta} alt="" />
+                            <PrendaMini prenda={prenda} tamano="xs" />
                             {prenda.titulo}
                           </a>
                         )}
@@ -176,9 +195,9 @@ export default function Resenas() {
                               <Boton variante="fantasma" tamano="sm" onClick={() => setRespondiendo(null)}>Cancelar</Boton>
                               <Boton
                                 tamano="sm"
-                                onClick={() => {
-                                  responderResena(r.id, textoRespuesta)
-                                  setRespondiendo(null)
+                                onClick={async () => {
+                                  const ok = await responderResena(r.id, textoRespuesta)
+                                  if (ok) setRespondiendo(null)
                                 }}
                               >
                                 Publicar respuesta
@@ -227,7 +246,7 @@ export default function Resenas() {
         pie={
           <>
             <Boton variante="fantasma" onClick={() => setEscribir(false)}>Cancelar</Boton>
-            <Boton onClick={enviar}>Publicar reseña</Boton>
+            <Boton onClick={enviar} disabled={publicando}>{publicando ? 'Publicando…' : 'Publicar reseña'}</Boton>
           </>
         }
       >
@@ -263,9 +282,6 @@ export default function Resenas() {
           />
         </Campo>
 
-        <Campo etiqueta="Título breve (opcional)" id="titulo-resena">
-          <Entrada id="titulo-resena" placeholder="Ej.: Llegó impecable y muy rápido" />
-        </Campo>
       </Modal>
     </>
   )

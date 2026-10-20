@@ -15,7 +15,7 @@ const ENLACES = [
 ]
 
 export function Encabezado() {
-  const { usuario, esAdmin, salir, notificaciones = [] } = useStore()
+  const { usuario, esAdmin, salir, notificaciones = [], marcarNotificacionesLeidas } = useStore()
   const { path } = useRoute()
   const [abierto, setAbierto] = useState(false)
   const [pegada, setPegada] = useState(false)
@@ -29,10 +29,11 @@ export function Encabezado() {
     try { setLeidas(JSON.parse(localStorage.getItem(`hilo-notificaciones-leidas-${usuario?.id ?? 'visitante'}`) || '[]')) } catch { setLeidas([]) }
   }, [usuario?.id])
   const sinLeer = notificacionesVista.filter((n) => !n.leida && !leidas.includes(n.id)).length
-  const marcarNotificacionesLeidas = () => {
+  const marcarLeidas = () => {
     const ids = [...new Set([...leidas, ...notificacionesVista.map((n) => n.id)])]
     setLeidas(ids)
     try { localStorage.setItem(`hilo-notificaciones-leidas-${usuario?.id ?? 'visitante'}`, JSON.stringify(ids)) } catch { /* No bloquear la interfaz. */ }
+    marcarNotificacionesLeidas?.()
   }
 
   useEffect(() => {
@@ -40,6 +41,18 @@ export function Encabezado() {
     setMenu(false)
     setAviso(false)
   }, [path])
+
+  // Cierra los menús flotantes al tocar fuera de las acciones de la cabecera.
+  useEffect(() => {
+    const alTocarFuera = (evento) => {
+      if (!evento.target.closest?.('.nav-acciones')) {
+        setMenu(false)
+        setAviso(false)
+      }
+    }
+    document.addEventListener('pointerdown', alTocarFuera)
+    return () => document.removeEventListener('pointerdown', alTocarFuera)
+  }, [])
 
   useEffect(() => {
     const onScroll = () => setPegada(scrollY > 24)
@@ -84,15 +97,16 @@ export function Encabezado() {
           <div className="panel-avisos">
             <div className="panel-avisos-cabeza">
               <p className="panel-avisos-titulo">Notificaciones</p>
-              {sinLeer > 0 && <button type="button" onClick={marcarNotificacionesLeidas}>Marcar leídas</button>}
+              {sinLeer > 0 && <button type="button" onClick={marcarLeidas}>Marcar leídas</button>}
             </div>
             <ul>
               {notificacionesVista.length ? notificacionesVista.map((n) => (
                 <li key={n.id} className={n.leida || leidas.includes(n.id) ? '' : 'nueva'}>
-                  <span className={`aviso-icono ${n.tipo}`} aria-hidden="true" />
+                  <span className={`aviso-icono ${n.tipo || 'sistema'}`} aria-hidden="true" />
                   <div>
                     <p>{n.texto}</p>
                     <small>{n.fecha}</small>
+                    {n.destino && <a href={href(n.destino)} onClick={() => setAviso(false)}>Ver detalle →</a>}
                   </div>
                 </li>
               )) : <li className="sin-notificaciones"><p>No tienes actividad nueva por ahora.</p></li>}
@@ -166,7 +180,7 @@ export function Encabezado() {
 }
 
 export function Pie() {
-  const { avisar } = useStore()
+  const { avisar, suscribir } = useStore()
   const [correo, setCorreo] = useState('')
   const [qrAbierto, setQrAbierto] = useState(false)
 
@@ -201,11 +215,11 @@ export function Pie() {
           </p>
           <form
             className="pie-correo"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault()
               if (!correo.includes('@')) return avisar('Escribe un correo válido para suscribirte.', 'aviso')
-              avisar('¡Listo! Te enviamos la agenda de talleres y los retos de la semana.', 'ok')
-              setCorreo('')
+              const ok = await suscribir(correo.trim())
+              if (ok) setCorreo('')
             }}
           >
             <input
@@ -335,14 +349,29 @@ export function Pie() {
   )
 }
 
+const ICONO_AVISO = {
+  ok: '✓',
+  aviso: '!',
+  info: 'i',
+}
+
 export function Avisos() {
-  const { avisos } = useStore()
+  const { avisos, cerrarAviso } = useStore()
   return (
-    <div className="avisos" aria-live="polite">
+    <div className="avisos" aria-live="polite" aria-atomic="false">
       {avisos.map((a) => (
-        <div key={a.id} className={`aviso ${a.tono}`}>
-          <span className="aviso-punto" aria-hidden="true" />
+        <div key={a.id} className={`aviso ${a.tono}`} role="status">
+          <span className="aviso-icono-toast" aria-hidden="true">{ICONO_AVISO[a.tono] ?? 'i'}</span>
           <p>{a.texto}</p>
+          <button
+            type="button"
+            className="aviso-cerrar"
+            aria-label="Cerrar mensaje"
+            onClick={() => cerrarAviso(a.id)}
+          >
+            ×
+          </button>
+          <span className="aviso-barra" aria-hidden="true" />
         </div>
       ))}
     </div>

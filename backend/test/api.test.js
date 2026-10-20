@@ -21,7 +21,7 @@ const db = newDb()
 db.public.registerFunction({ name: 'gen_random_uuid', returns: DataType.uuid, implementation: () => crypto.randomUUID(), impure: true })
 db.public.registerFunction({ name: 'now', returns: DataType.timestamptz, implementation: () => new Date() })
 db.public.none(limpiar(fs.readFileSync(path.join(sqlDir, 'schema.sql'), 'utf8')))
-db.public.none(limpiar(fs.readFileSync(path.join(sqlDir, 'seed.sql'), 'utf8')))
+db.public.none(limpiar(fs.readFileSync(path.join(sqlDir, 'seed-demo.sql'), 'utf8')))
 
 const adaptador = db.adapters.createPg()
 configurarPool(new adaptador.Pool())
@@ -119,6 +119,36 @@ test('flujo completo de intercambio: proponer, aceptar y crear envío', async ()
   })
   assert.equal(envio.estado, 201)
   assert.match(envio.cuerpo.pedido.guia, /^HC-/)
+
+  // Confirmar la entrega cierra el intercambio automáticamente.
+  const entregado = await pedir(`/api/pedidos/${envio.cuerpo.pedido.id}/estado`, {
+    method: 'PATCH', token: valentina, body: { estado: 'Entregado' },
+  })
+  assert.equal(entregado.estado, 200)
+  const completado = await pedir('/api/datos', { token: valentina })
+  assert.equal(completado.cuerpo.intercambios.find((x) => x.id === id).estado, 'Completado')
+
+  // Una vez cerrado no admite más cambios de estado.
+  const repetido = await pedir(`/api/intercambios/${id}/estado`, {
+    method: 'PATCH', token: mateo, body: { estado: 'Completado' },
+  })
+  assert.equal(repetido.estado, 409)
+
+  // Las dos partes ya pueden calificarse.
+  const resena = await pedir('/api/resenas', {
+    method: 'POST', token: mateo,
+    body: { paraId: 'u1', prendaId: 'p2', estrellas: 5, texto: 'Intercambio completado sin problemas y con muy buena comunicación.' },
+  })
+  assert.equal(resena.estado, 201)
+})
+
+test('no se puede reseñar a alguien sin un intercambio aceptado', async () => {
+  const daniela = await entrar('daniela@hilocircular.co')
+  const { estado } = await pedir('/api/resenas', {
+    method: 'POST', token: daniela,
+    body: { paraId: 'u3', estrellas: 5, texto: 'Intento de reseña sin haber tenido un intercambio con esta persona.' },
+  })
+  assert.equal(estado, 403)
 })
 
 test('el receptor no puede cancelar (solo aceptar o rechazar)', async () => {
@@ -126,6 +156,58 @@ test('el receptor no puede cancelar (solo aceptar o rechazar)', async () => {
   const daniela = await entrar('daniela@hilocircular.co')
   const { estado } = await pedir('/api/intercambios/x1/estado', { method: 'PATCH', token: daniela, body: { estado: 'Cancelado' } })
   assert.equal(estado, 403)
+})
+
+test('el seguimiento y el chat no se exponen a visitantes', async () => {
+  const visitante = await pedir('/api/datos')
+  assert.equal(visitante.estado, 200)
+  assert.deepEqual(visitante.cuerpo.pedidos, [])
+  assert.deepEqual(visitante.cuerpo.mensajes, [])
+  assert.equal(visitante.cuerpo.intercambios.length, 0)
+})
+
+test('chat real entre los participantes de un intercambio', async () => {
+  const valentina = await entrar('valentina@hilocircular.co')
+  const daniela = await entrar('daniela@hilocircular.co')
+  const ajena = await entrar('mateo@hilocircular.co')
+
+  const propuesta = await pedir('/api/intercambios', {
+    method: 'POST',
+    token: valentina,
+    body: { prendaId: 'p4', ofreceId: 'p1', mensaje: 'Hola, ¿coordinamos el intercambio?' },
+  })
+  assert.equal(propuesta.estado, 201)
+  const id = propuesta.cuerpo.intercambio.id
+
+  const iniciales = await pedir(`/api/intercambios/${id}/mensajes`, { token: daniela })
+  assert.equal(iniciales.estado, 200)
+  assert.equal(iniciales.cuerpo.mensajes.length, 1)
+
+  const enviado = await pedir(`/api/intercambios/${id}/mensajes`, {
+    method: 'POST',
+    token: daniela,
+    body: { texto: '¡Claro! Te parece el sábado en el campus.' },
+  })
+  assert.equal(enviado.estado, 201)
+  assert.equal(enviado.cuerpo.mensaje.texto, '¡Claro! Te parece el sábado en el campus.')
+
+  const historial = await pedir(`/api/intercambios/${id}/mensajes`, { token: valentina })
+  assert.equal(historial.cuerpo.mensajes.length, 2)
+
+  const bloqueado = await pedir(`/api/intercambios/${id}/mensajes`, { token: ajena })
+  assert.equal(bloqueado.estado, 403)
+})
+
+test('marcar las notificaciones como leídas', async () => {
+  const valentina = await entrar('valentina@hilocircular.co')
+  const antes = await pedir('/api/datos', { token: valentina })
+  assert.ok(antes.cuerpo.notificaciones.some((n) => !n.leida))
+
+  const marcar = await pedir('/api/notificaciones/leidas', { method: 'PATCH', token: valentina })
+  assert.equal(marcar.estado, 200)
+
+  const despues = await pedir('/api/datos', { token: valentina })
+  assert.ok(despues.cuerpo.notificaciones.every((n) => n.leida))
 })
 
 test('marcar reseña como útil', async () => {
@@ -148,6 +230,20 @@ test('registro de una cuenta nueva', async () => {
     body: { nombre: 'Persona Nueva', email: 'nueva@hilocircular.co', clave: 'clave123' },
   })
   assert.equal(repetido.estado, 409)
+
+  const token = await entrar('nueva@hilocircular.co', 'clave123')
+  const verificacion = await pedir('/api/usuarios/me/verificacion', { method: 'POST', token })
+  assert.equal(verificacion.estado, 201)
+  const duplicada = await pedir('/api/usuarios/me/verificacion', { method: 'POST', token })
+  assert.equal(duplicada.estado, 409)
+})
+
+test('suscripción a la agenda de talleres', async () => {
+  const invalido = await pedir('/api/suscripciones', { method: 'POST', body: { email: 'sin-arroba' } })
+  assert.equal(invalido.estado, 400)
+  const valido = await pedir('/api/suscripciones', { method: 'POST', body: { email: 'agenda@hilocircular.co' } })
+  assert.equal(valido.estado, 201)
+  assert.equal(valido.cuerpo.ok, true)
 })
 
 test('admin: verificar usuario y resolver reportes', async () => {
@@ -158,12 +254,50 @@ test('admin: verificar usuario y resolver reportes', async () => {
   assert.equal(verificar.cuerpo.usuario.verificado, true)
 
   const datos = await pedir('/api/datos', { token: admin })
-  assert.equal(datos.cuerpo.reportes.length, 4)
+  assert.ok(datos.cuerpo.reportes.length >= 4)
   assert.ok(datos.cuerpo.pedidos.length >= 6)
 
   const resolver = await pedir('/api/reportes/g1/estado', { method: 'PATCH', token: admin, body: { estado: 'Resuelto' } })
   assert.equal(resolver.estado, 200)
   assert.equal(resolver.cuerpo.reporte.estado, 'Resuelto')
+})
+
+test('resolver una solicitud de verificación verifica la cuenta', async () => {
+  const admin = await entrar('admin@hilocircular.co')
+  const datos = await pedir('/api/datos', { token: admin })
+  const solicitud = datos.cuerpo.reportes.find((r) => r.tipo === 'Verificación')
+  assert.ok(solicitud, 'debe existir la solicitud creada en el test de registro')
+
+  const resuelto = await pedir(`/api/reportes/${solicitud.id}/estado`, {
+    method: 'PATCH',
+    token: admin,
+    body: { estado: 'Resuelto' },
+  })
+  assert.equal(resuelto.estado, 200)
+
+  const nueva = await entrar('nueva@hilocircular.co', 'clave123')
+  const perfil = await pedir('/api/auth/me', { token: nueva })
+  assert.equal(perfil.cuerpo.usuario.verificado, true)
+})
+
+test('un dueño postula su prenda y el equipo resuelve la curaduría', async () => {
+  const valentina = await entrar('valentina@hilocircular.co')
+  const postulacion = await pedir('/api/prendas/p8/destacada', { method: 'PATCH', token: valentina })
+  assert.equal(postulacion.estado, 200)
+  assert.equal(postulacion.cuerpo.solicitud, true)
+  assert.equal(postulacion.cuerpo.prenda.destacada, false)
+
+  const admin = await entrar('admin@hilocircular.co')
+  const datos = await pedir('/api/datos', { token: admin })
+  const reporte = datos.cuerpo.reportes.find((r) => r.prendaId === 'p8' && r.motivo === 'Postulación a destacado')
+  assert.ok(reporte, 'debe crearse el reporte de curaduría')
+
+  const resolver = await pedir(`/api/reportes/${reporte.id}/estado`, {
+    method: 'PATCH', token: admin, body: { estado: 'Resuelto' },
+  })
+  assert.equal(resolver.estado, 200)
+  const despues = await pedir('/api/datos', { token: admin })
+  assert.equal(despues.cuerpo.prendas.find((p) => p.id === 'p8').destacada, true)
 })
 
 test('un cliente no puede moderar', async () => {

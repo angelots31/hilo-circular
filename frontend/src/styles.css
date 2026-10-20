@@ -2009,3 +2009,414 @@ html { scroll-padding-top: 4.8rem; }
 
 /* La animación de la ceja no debe rotar el bloque de texto del título. */
 .ceja::before { transform-origin: 50% 50%; }
+
+/* =========================================================================
+   Séptima pasada · paneles profesionales, chat, fotos y contraste
+   ========================================================================= */
+
+:root { --tinta-suave: #6f6579; }
+
+/* ---------------------------------------------------- Barra lateral plegable */
+
+.panel-app { --panel-ancho: 17rem; }
+.panel-app.colapsado { --panel-ancho: 4.9rem; }
+.panel-lateral { width: var(--panel-ancho); transition: width .28s cubic-bezier(.2,.8,.2,1), transform .3s ease; }
+.panel-contenido { margin-left: var(--panel-ancho); transition: margin-left .28s cubic-bezier(.2,.8,.2,1); }
+
+.panel-colapsar {
+  position: absolute;
+  top: 1.15rem;
+  right: .55rem;
+  width: 1.9rem;
+  height: 1.9rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 9px;
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, transform .18s;
+  z-index: 2;
+}
+.panel-colapsar:hover { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); }
+.panel-colapsar svg { width: 1rem; height: 1rem; }
+
+.panel-app.colapsado .panel-marca-texto,
+.panel-app.colapsado .panel-nav-texto,
+.panel-app.colapsado .panel-usuario > span,
+.panel-app.colapsado .panel-insignia { display: none; }
+.panel-app.colapsado .panel-marca { justify-content: center; padding-inline: 0; }
+.panel-app.colapsado .panel-marca-mascota { width: 2.1rem; height: 2.1rem; }
+.panel-app.colapsado .panel-nav a,
+.panel-app.colapsado .panel-nav button,
+.panel-app.colapsado .panel-enlace { justify-content: center; gap: 0; padding-inline: .4rem; }
+.panel-app.colapsado .panel-nav-icono { width: 1.5rem; flex-basis: 1.5rem; }
+.panel-app.colapsado .panel-usuario { justify-content: center; padding-inline: 0; }
+.panel-app.colapsado .panel-lateral-pie { justify-items: center; }
+.panel-app.colapsado .panel-colapsar { position: static; margin: .1rem auto .2rem; order: -1; }
+
+/* El hover del menú oscuro conserva texto claro (antes quedaba ilegible). */
+.panel-lateral .panel-nav a { color: #f4f0f7; }
+.panel-lateral .panel-nav a:hover,
+.panel-lateral .panel-nav button:hover,
+.panel-lateral .panel-enlace:hover {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+}
+.panel-lateral .panel-nav a.activo { background: #fff; color: var(--ciruela); }
+.panel-lateral .panel-nav a.activo:hover { background: #fff; color: var(--ciruela); }
+.panel-lateral .panel-nav button { color: #f4f0f7; }
+
+@media (max-width: 62rem) {
+  .panel-app, .panel-app.colapsado { --panel-ancho: 0rem; }
+  .panel-lateral { width: 17.5rem; }
+  .panel-colapsar { display: none; }
+  .panel-app.colapsado .panel-marca-texto { display: flex; }
+  .panel-app.colapsado .panel-nav-texto { display: inline; }
+  .panel-app.colapsado .panel-usuario > span { display: block; }
+  .panel-app.colapsado .panel-insignia { display: inline-block; }
+  .panel-app.colapsado .panel-nav a,
+  .panel-app.colapsado .panel-nav button,
+  .panel-app.colapsado .panel-enlace { justify-content: flex-start; gap: .75rem; padding: .7rem .85rem; }
+  .panel-app.colapsado .panel-usuario { justify-content: flex-start; padding: .3rem .4rem .6rem; }
+}
+
+/* --------------------------------------------------------- Avisos / toasts */
+
+.avisos {
+  z-index: 120;
+  width: min(26rem, calc(100vw - 2rem));
+  gap: .7rem;
+}
+.aviso {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) 1.6rem;
+  align-items: start;
+  gap: .75rem;
+  padding: 1rem 1rem 1.15rem;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--tinta);
+  border: 1px solid var(--línea);
+  box-shadow: 0 18px 45px -18px rgba(45, 33, 50, .45);
+  overflow: hidden;
+  animation: aviso-entra .32s cubic-bezier(.2,.8,.2,1) both;
+}
+.aviso.ok { background: #f1f8f0; border-color: #bcd6b8; color: #2f4a2e; }
+.aviso.aviso { background: #fdf5e9; border-color: #e7c99c; color: #6b4620; }
+.aviso.info { background: #f2f1fb; border-color: #c9c6e8; color: #33345c; }
+.aviso p { font-size: .9rem; font-weight: 600; line-height: 1.45; }
+.aviso-icono-toast {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: currentColor;
+  color: #fff;
+  font: 800 .9rem/1 var(--fuente-titulo);
+}
+.aviso-icono-toast::first-letter { color: #fff; }
+.aviso.ok .aviso-icono-toast { background: #4a6b48; }
+.aviso.aviso .aviso-icono-toast { background: #b07a34; }
+.aviso.info .aviso-icono-toast { background: var(--lavanda); }
+.aviso-cerrar {
+  width: 1.6rem;
+  height: 1.6rem;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(42,33,48,.07);
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.aviso-cerrar:hover { background: rgba(42,33,48,.14); }
+.aviso-barra {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: currentColor;
+  opacity: .28;
+  animation: aviso-barra 5.2s linear forwards;
+}
+@keyframes aviso-entra { from { opacity: 0; transform: translateY(12px) scale(.98); } }
+@keyframes aviso-barra { from { width: 100%; } to { width: 0; } }
+
+/* ----------------------------------------- Notificaciones internas y campana */
+
+.aviso-icono.mensaje { background: #8b6cc9; }
+.aviso-icono.solicitud { background: var(--lavanda); }
+.panel-avisos { color: var(--tinta); }
+.panel-avisos li.nueva,
+.panel-notificaciones li.nueva {
+  background: #f3f0fb;
+  box-shadow: inset 3px 0 0 var(--lavanda);
+}
+.panel-avisos li a {
+  display: inline-block;
+  margin-top: .35rem;
+  color: var(--lavanda);
+  font-size: .78rem;
+  font-weight: 700;
+}
+.panel-notificaciones-cabeza small { color: var(--tinta-suave); }
+.panel-notificaciones li small { color: var(--tinta-suave); }
+
+/* ---------------------------------------------- Miniaturas y detalles de prenda */
+
+.prenda-mini {
+  display: inline-grid;
+  place-items: center;
+  width: 4.2rem;
+  height: 4.2rem;
+  flex: none;
+  padding: 0;
+  border: 1px solid var(--línea);
+  border-radius: 13px;
+  background: linear-gradient(160deg, var(--niebla), #fff 72%);
+  overflow: hidden;
+  vertical-align: middle;
+}
+.prenda-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.prenda-mini .prenda-arte { width: 88%; height: 88%; }
+.prenda-mini.xs { width: 2.7rem; height: 2.7rem; border-radius: 9px; }
+.prenda-mini.sm { width: 3.3rem; height: 3.3rem; border-radius: 11px; }
+.prenda-mini.md { width: 4.2rem; height: 4.2rem; }
+.prenda-mini.lg { width: 6rem; height: 6rem; border-radius: 16px; }
+button.prenda-mini { cursor: pointer; transition: transform .2s, box-shadow .2s, border-color .2s; }
+button.prenda-mini:hover { transform: translateY(-2px); border-color: var(--lavanda); box-shadow: var(--sombra-suave); }
+
+.celda-prenda { display: flex; align-items: center; gap: .7rem; min-width: 0; }
+.celda-prenda > span { display: grid; gap: .15rem; min-width: 0; }
+.celda-prenda b { line-height: 1.25; }
+.celda-prenda small { font-size: .76rem; opacity: .66; }
+
+.detalle-prenda-modal { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .92fr); gap: 1.5rem; align-items: start; }
+.detalle-prenda-galeria { display: grid; gap: .7rem; }
+.detalle-prenda-foto {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 4.2;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid var(--línea);
+  background: linear-gradient(160deg, var(--niebla), #fff);
+}
+.detalle-prenda-foto .prenda-foto { width: 100%; height: 100%; object-fit: cover; }
+.detalle-prenda-foto .prenda-arte { width: 88%; height: 88%; }
+.detalle-prenda-info { display: grid; gap: .85rem; align-content: start; min-width: 0; }
+.detalle-prenda-valor { font: 800 1.6rem var(--fuente-titulo); color: var(--lavanda); letter-spacing: -.03em; }
+.detalle-prenda-descripcion { font-size: .94rem; line-height: 1.6; color: var(--tinta-suave); }
+.detalle-prenda-dueno { display: flex; align-items: center; gap: .7rem; padding-top: .8rem; border-top: 1px solid var(--línea); flex-wrap: wrap; }
+.detalle-prenda-dueno > span { display: grid; gap: .1rem; }
+.detalle-prenda-dueno b { font-size: .9rem; }
+.detalle-prenda-dueno small { font-size: .76rem; opacity: .66; }
+.detalle-prenda-dueno .etiqueta { margin-left: auto; }
+@media (max-width: 760px) {
+  .detalle-prenda-modal { grid-template-columns: minmax(0, 1fr); }
+  .detalle-prenda-foto { aspect-ratio: 4 / 3.4; }
+}
+
+/* ------------------------------------------------------- Chat del intercambio */
+
+.chat-contexto {
+  display: grid;
+  gap: .9rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--línea);
+  background: linear-gradient(135deg, rgba(226,222,234,.55), #fff);
+}
+.chat-prendas { display: flex; align-items: center; justify-content: center; gap: 1.1rem; }
+.chat-prendas > div { display: grid; justify-items: center; gap: .35rem; text-align: center; max-width: 10rem; min-width: 0; }
+.chat-prendas small { font-size: .76rem; line-height: 1.3; opacity: .75; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.chat-prendas > span { font-size: 1.35rem; color: var(--lavanda); }
+.chat-persona { display: flex; align-items: center; gap: .7rem; padding-top: .75rem; border-top: 1px solid var(--línea); }
+.chat-persona > span { display: grid; gap: .1rem; min-width: 0; }
+.chat-persona b { font-size: .9rem; }
+.chat-persona small { font-size: .76rem; opacity: .66; }
+.chat-persona .etiqueta { margin-left: auto; }
+
+.charla {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  max-height: 25rem;
+  min-height: 12rem;
+  overflow: auto;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--línea);
+  background: #f1eef7;
+}
+.mensaje {
+  max-width: 82%;
+  padding: .7rem .95rem;
+  border-radius: 16px 16px 16px 4px;
+  background: #fff;
+  border: 1px solid rgba(93,70,85,.1);
+  box-shadow: 0 6px 18px -14px rgba(42,33,48,.45);
+  font-size: .9rem;
+}
+.mensaje.mio {
+  margin-left: auto;
+  background: linear-gradient(135deg, #6872aa, #5d4655);
+  color: #fff;
+  border-color: transparent;
+  border-radius: 16px 16px 4px 16px;
+}
+.mensaje-texto { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mensaje small { display: block; margin-top: .3rem; font-size: .68rem; opacity: .62; }
+.mensaje.mio small { color: #f3eef8; opacity: .78; }
+.charla-vacia { display: grid; place-items: center; gap: .35rem; text-align: center; padding: 2rem 1rem; color: var(--tinta-suave); }
+.charla-vacia b { color: var(--ciruela); font-family: var(--fuente-titulo); font-size: 1.05rem; }
+.charla-vacia p { max-width: 22rem; font-size: .88rem; }
+.charla-sugerencias { display: flex; gap: .4rem; flex-wrap: wrap; }
+.charla-sugerencias .chip { font-size: .76rem; padding: .38rem .75rem; }
+.charla-enviar { display: flex; gap: .6rem; align-items: stretch; }
+.charla-enviar .entrada { flex: 1; min-width: 0; }
+.charla-nota { font-size: .76rem; line-height: 1.45; color: var(--tinta-suave); }
+
+/* ------------------------------------------------------- Seguimiento de envío */
+
+.seguimiento-envio {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem;
+  border-radius: 20px;
+  border: 1px solid var(--línea);
+  background: #fff;
+  box-shadow: var(--sombra-suave);
+}
+.seguimiento-envio-cabeza { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.seguimiento-prenda { display: flex; align-items: center; gap: .8rem; min-width: 0; }
+.seguimiento-prenda > div { display: grid; gap: .2rem; min-width: 0; }
+.seguimiento-prenda b { font-size: .95rem; line-height: 1.3; overflow-wrap: anywhere; }
+.seguimiento-prenda p { font-size: .82rem; opacity: .78; }
+.seguimiento-prenda small { font-size: .76rem; opacity: .64; }
+.seguimiento-linea { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; margin: 0; padding: 0; }
+.seguimiento-linea li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .55rem; align-items: start; padding-top: .75rem; border-top: 3px solid var(--línea); }
+.seguimiento-linea li.hecho, .seguimiento-linea li.actual { border-top-color: var(--lavanda); }
+.seguimiento-linea li.hecho .seguimiento-punto { background: #4a6b48; color: #fff; }
+.seguimiento-linea li.actual .seguimiento-punto { background: var(--lavanda); color: #fff; }
+.seguimiento-punto { display: grid; place-items: center; width: 1.65rem; height: 1.65rem; border-radius: 50%; background: var(--niebla); color: var(--ciruela); font: 800 .72rem/1 var(--fuente-titulo); }
+.seguimiento-linea b { display: block; font-size: .85rem; }
+.seguimiento-linea small { display: block; margin-top: .2rem; font-size: .74rem; line-height: 1.35; opacity: .7; }
+.seguimiento-incidencia { padding: .95rem 1rem; border-radius: 14px; border: 1px solid rgba(176,78,78,.28); background: rgba(176,78,78,.08); color: #7c2f2f; }
+.seguimiento-incidencia p { margin-top: .35rem; font-size: .86rem; }
+.seguimiento-envio-pie { display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; padding-top: .85rem; border-top: 1px solid var(--línea); }
+.seguimiento-envio-pie .intercambio-acciones { justify-content: flex-end; }
+.seguimiento-privado { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; padding: 1.4rem; border-radius: 22px; border: 1px dashed rgba(104,114,170,.45); background: rgba(255,255,255,.75); }
+.seguimiento-candado { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 14px; background: var(--niebla); color: var(--lavanda); }
+.seguimiento-candado svg { width: 1.5rem; height: 1.5rem; }
+.seguimiento-privado > div { flex: 1 1 18rem; min-width: 0; }
+.seguimiento-privado b { font-family: var(--fuente-titulo); font-size: 1.05rem; }
+.seguimiento-privado p { margin-top: .25rem; font-size: .88rem; color: var(--tinta-suave); }
+@media (max-width: 640px) {
+  .seguimiento-linea { grid-template-columns: minmax(0, 1fr); gap: .55rem; }
+  .seguimiento-linea li { border-top: 0; border-left: 3px solid var(--línea); padding: .1rem 0 .65rem .75rem; }
+  .seguimiento-linea li.hecho, .seguimiento-linea li.actual { border-left-color: var(--lavanda); }
+  .chat-prendas { gap: .6rem; }
+  .chat-prendas > div { max-width: 8rem; }
+}
+
+/* ---------------------------------------------- Tarjetas de intercambio (público) */
+
+.intercambio-publico { grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: .9rem; }
+.intercambio-tipo { font-size: .78rem; opacity: .66; margin-bottom: .35rem; }
+.intercambio-persona { display: flex; align-items: center; gap: .65rem; }
+.intercambio-persona > div { display: grid; gap: .1rem; min-width: 0; }
+.intercambio-persona b { font-family: var(--fuente-titulo); font-size: .98rem; }
+.intercambio-persona p { font-size: .78rem; opacity: .7; }
+.intercambio-prendas-contexto { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: .8rem; padding: .9rem; border-radius: 18px; background: rgba(226,222,234,.36); border: 1px solid var(--línea); }
+.intercambio-prenda { display: grid; justify-items: center; gap: .35rem; text-align: center; min-width: 0; }
+.intercambio-prenda small { font-size: .78rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 100%; }
+.intercambio-prenda em { font-style: normal; font-size: .68rem; letter-spacing: .09em; text-transform: uppercase; opacity: .6; }
+.intercambio-resumen { display: grid; gap: .45rem; }
+.intercambio-resumen p { font-size: .88rem; opacity: .86; }
+.intercambio-mensaje { margin: 0; padding: .75rem .85rem; border-radius: 12px; background: rgba(226,222,234,.42); border-left: 3px solid var(--lavanda); font-size: .84rem; line-height: 1.5; overflow-wrap: anywhere; }
+.intercambio-prenda-panel { display: grid; justify-items: center; gap: .3rem; max-width: 9rem; min-width: 0; text-align: center; }
+.intercambio-prenda-panel small { font-size: .74rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* --------------------------------------------------- Acciones profesionales */
+
+.acciones-celda { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.acciones-celda .boton.mini,
+.tabla .acciones-celda .boton.mini { min-height: 2rem; padding: .34rem .72rem; font-size: .76rem; font-weight: 700; border-radius: 999px; white-space: nowrap; }
+.acciones-celda .boton.mini.fantasma { box-shadow: inset 0 0 0 1px rgba(93,70,85,.22); }
+.acciones-celda .boton.mini.fantasma:hover { background: rgba(104,114,170,.1); box-shadow: inset 0 0 0 1px rgba(104,114,170,.45); }
+.acciones-celda .boton.mini.texto { padding-inline: .5rem; }
+.acciones-prenda .chip { font-size: .78rem; }
+.chip-detalle { border-color: rgba(104,114,170,.45); color: var(--lavanda); }
+.panel-app .panel-cabeza { gap: 1rem; }
+.panel-app .panel-cabeza .pestanas { margin-left: auto; }
+.panel-app .tabla thead th { background: #f4f1f9; }
+
+/* ------------------------------------------------------------ Auth y pie */
+
+.auth-privacidad { padding: .75rem .9rem; border-radius: 12px; background: rgba(226,222,234,.5); border: 1px solid var(--línea); font-size: .8rem; line-height: 1.5; color: var(--tinta-suave); }
+.auth-alerta { font-weight: 600; }
+.campo-error { color: #8f3030; }
+.etiqueta.ambar { color: #714b1c; }
+.etiqueta.verde { color: #355633; }
+.etiqueta.rojo { color: #832f2f; }
+.pie-marca p { opacity: .86; }
+.pie-columna a { opacity: .92; }
+.pie-legal { opacity: .82; }
+.panel-avisos, .menu-sesion { color: var(--tinta); }
+.panel-app .tabla tbody tr:hover { background: #f7f5fb; }
+
+@media (max-width: 720px) {
+  .acciones-celda .boton.mini { min-height: 2.4rem; }
+  .panel-app .panel-cabeza .pestanas { margin-left: 0; width: 100%; overflow-x: auto; }
+  .detalle-prenda-dueno .etiqueta { margin-left: 0; }
+}
+.panel-lateral .panel-marca { padding-right: 2.5rem; }
+.panel-app.colapsado .panel-marca { padding-right: 0; }
+.tono-rosa .ceja { color: var(--ciruela); }
+
+/* =========================================================================
+   Octava pasada · alertas, contraste y detalles de conversación
+   ========================================================================= */
+
+.auth-alerta {
+  padding: .8rem 1rem;
+  border: 1px solid rgba(143, 48, 48, .22);
+  border-left: 4px solid #9b3b3b;
+  border-radius: 12px;
+  background: rgba(155, 59, 59, .07);
+  color: #7d2929;
+  font-size: .86rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.aviso { border-left: 4px solid currentColor; }
+.aviso.ok { border-left-color: #7a9e78; }
+.aviso.aviso { border-left-color: #c98a6d; }
+.aviso.info { border-left-color: var(--lavanda); }
+.aviso p { font-size: .92rem; }
+.aviso.ok .aviso-cerrar:hover { background: rgba(74, 107, 72, .14); }
+.aviso.aviso .aviso-cerrar:hover { background: rgba(176, 122, 52, .16); }
+.aviso.info .aviso-cerrar:hover { background: rgba(104, 114, 170, .14); }
+
+.mensaje small { color: var(--tinta-suave); opacity: .82; }
+.mensaje.mio small { color: #f3eef8; opacity: .86; }
+
+/* En fondos de marca, los botones fantasma necesitan un poco de relleno. */
+.tono-lavanda .boton.fantasma,
+.tono-oscuro .boton.fantasma { background: rgba(255, 255, 255, .08); }
+.tono-lavanda .boton.fantasma:hover,
+.tono-oscuro .boton.fantasma:hover { background: rgba(255, 255, 255, .16); }
+
+/* Las etiquetas sobre fondos de marca no deben confundirse con el fondo. */
+.tono-lavanda .etiqueta.lavanda { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28); }
+.tono-rosa .etiqueta.rosa { box-shadow: inset 0 0 0 1px rgba(93, 70, 85, .16); }

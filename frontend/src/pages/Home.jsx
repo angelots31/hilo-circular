@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Mascot from '../components/Mascot.jsx'
 import { Estrella, Puntos, Trebol } from '../components/Adornos.jsx'
 import PrendaCard from '../components/PrendaCard.jsx'
-import { Aparece, Boton, Seccion, TituloSeccion } from '../components/ui.jsx'
+import { Aparece, Boton, EstadoVacio, Seccion, TituloSeccion } from '../components/ui.jsx'
 import { useStore } from '../lib/store.jsx'
 import { CIFRAS, ESLOGAN, FORMAS, PASOS, VOCES } from '../lib/seed.js'
 
@@ -116,24 +116,38 @@ export default function Home() {
             texto="Cada pieza pertenece a alguien de la comunidad universitaria de Medellín. Puedes intercambiarla, repararla o transformarla en un taller relámpago."
             accion={<Boton to="/catalogo">Ver todo el catálogo</Boton>}
           />
-          <div className="catalogo-rejilla">
-            {destacadas.map((p, i) => (
-              <Aparece key={p.id} retraso={i * 80}>
-                <PrendaCard prenda={p} />
-              </Aparece>
-            ))}
-          </div>
+          {prendas.length === 0 ? (
+            <EstadoVacio
+              pose="saluda"
+              titulo="El catálogo está esperando su primera prenda"
+              texto="La comunidad acaba de abrir sus puertas. Publica esa prenda que ya no usas y empieza el primer intercambio."
+              accion={<Boton to={usuario ? '/subir' : '/registro'} tamano="lg">Publicar la primera prenda</Boton>}
+              secundario={<Boton to="/como-funciona" variante="fantasma">Conocer cómo funciona</Boton>}
+            />
+          ) : (
+            <>
+              <div className="catalogo-rejilla">
+                {(destacadas.length ? destacadas : ultimas.slice(0, 3)).map((p, i) => (
+                  <Aparece key={p.id} retraso={i * 80}>
+                    <PrendaCard prenda={p} />
+                  </Aparece>
+                ))}
+              </div>
 
-          <div style={{ marginTop: '4.5rem' }}>
-            <TituloSeccion ceja="Recién llegadas" titulo="Lo último que subió la comunidad" />
-            <div className="catalogo-rejilla">
-              {ultimas.map((p, i) => (
-                <Aparece key={p.id} retraso={i * 60}>
-                  <PrendaCard prenda={p} />
-                </Aparece>
-              ))}
-            </div>
-          </div>
+              {ultimas.length > 0 && (
+                <div style={{ marginTop: '4.5rem' }}>
+                  <TituloSeccion ceja="Recién llegadas" titulo="Lo último que subió la comunidad" />
+                  <div className="catalogo-rejilla">
+                    {ultimas.map((p, i) => (
+                      <Aparece key={p.id} retraso={i * 60}>
+                        <PrendaCard prenda={p} />
+                      </Aparece>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </Seccion>
 

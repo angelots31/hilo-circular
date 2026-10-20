@@ -62,12 +62,16 @@ Variables de entorno (`frontend/.env`, copia de `.env.example`):
 - Si la API no responde, la pantalla avisa «No pudimos conectar con el servidor»
   y queda en estado vacío; revisa que la API esté levantada.
 
-Cuentas demo (contraseña `demo123`):
+Cuentas demo (solo si el backend corre con `npm run demo` o
+`npm run db:setup:demo`, contraseña `demo123`):
 
 | Rol     | Correo                      |
 | ------- | --------------------------- |
 | Cliente | `valentina@hilocircular.co` |
 | Admin   | `admin@hilocircular.co`     |
+
+En un entorno real la base arranca vacía: registra tu cuenta desde la web y
+crea la administración con `npm run admin:crear` en `backend`.
 
 ---
 

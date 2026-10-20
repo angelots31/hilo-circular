@@ -58,8 +58,19 @@ Si ya tienes PostgreSQL, en `backend`:
 
 ```bash
 cp .env.example .env    # completa DATABASE_URL, JWT_SECRET, etc.
-npm run db:setup        # crea las tablas y carga el seed
+npm run db:setup        # crea las tablas y deja la base vacía (entorno real)
+npm run admin:crear -- --email tu@correo.com --clave "una-clave-segura" --nombre "Tu nombre"
 npm run dev             # API real (:4000)
+```
+
+> `db:setup` ya **no** carga prendas, reseñas ni cuentas de prueba. Si quieres
+esos datos para una demostración local usa `npm run db:setup:demo`.
+
+### Empezar a operar con datos reales
+
+```bash
+npm run db:limpiar              # borra actividad y cuentas de cliente, conserva admin
+npm run db:limpiar -- --todo    # borra también todas las cuentas
 ```
 
 ### Scripts
@@ -69,7 +80,10 @@ npm run dev             # API real (:4000)
 | `backend` | `npm run demo` | API con datos en memoria |
 | `backend` | `npm run dev` | API con Postgres real (reinicia al guardar) |
 | `backend` | `npm start` | API en producción |
-| `backend` | `npm run db:setup` | Crea tablas y carga datos de ejemplo |
+| `backend` | `npm run db:setup` | Crea las tablas y deja la base vacía |
+| `backend` | `npm run db:setup:demo` | Crea tablas y carga datos de demostración |
+| `backend` | `npm run db:limpiar` | Borra datos de prueba (conserva administración) |
+| `backend` | `npm run admin:crear` | Crea o actualiza la cuenta de administración |
 | `backend` | `npm test` | Tests (Postgres en memoria) |
 | `frontend` | `npm run dev` | Web en modo desarrollo |
 | `frontend` | `npm run build` | Compila en `frontend/dist` |
@@ -100,12 +114,15 @@ npm run dev             # API real (:4000)
 
 > Los `.env` **no se suben a git**; solo se versionan los `.env.example`.
 
-### Cuentas demo (contraseña `demo123`)
+### Cuentas demo (solo con `npm run demo` o `db:setup:demo`)
 
 | Rol     | Correo                      |
 | ------- | --------------------------- |
 | Cliente | `valentina@hilocircular.co` |
 | Admin   | `admin@hilocircular.co`     |
+
+Contraseña: `demo123`. En producción crea tu propia cuenta con
+`npm run admin:crear` y registra clientes desde la web.
 
 ---
 

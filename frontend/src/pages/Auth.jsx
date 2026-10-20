@@ -85,7 +85,7 @@ export default function Auth({ modo = 'entrar' }) {
         <aside className="acceso-visual tono-niebla" data-tono="niebla">
           <div className="acceso-visual-contenido">
             <Mascot pose={esRegistro ? 'saluda' : 'sentado'} />
-            <p className="ceja">{esRegistro ? 'Únete a la comunidad' : 'Bienvenida de vuelta'}</p>
+            <p className="ceja">{esRegistro ? 'Únete a la comunidad' : 'Bienvenida/o de vuelta'}</p>
             <h2>{ESLOGAN}</h2>
             <p className="acceso-visual-texto">
               {esRegistro
@@ -116,7 +116,7 @@ export default function Auth({ modo = 'entrar' }) {
 
             {esRegistro && (
               <Campo etiqueta="Nombre completo" id="nombre">
-                <Entrada id="nombre" value={formulario.nombre} onChange={(e) => setFormulario({ ...formulario, nombre: e.target.value })} placeholder="Valentina Ríos" autoComplete="name" />
+                <Entrada id="nombre" value={formulario.nombre} onChange={(e) => setFormulario({ ...formulario, nombre: e.target.value })} placeholder="Tu nombre completo" autoComplete="name" />
               </Campo>
             )}
 
@@ -199,28 +199,9 @@ export default function Auth({ modo = 'entrar' }) {
               )}
             </div>
 
-            <div className="auth-demo">
-              <b>Cuentas de demostración</b>
-              <p>Usa estas cuentas de prueba para recorrer los paneles de la comunidad y de administración.</p>
-              <div className="chips">
-                <Boton
-                  type="button"
-                  variante="fantasma"
-                  tamano="sm"
-                  onClick={() => { setFormulario({ ...formulario, email: 'valentina@hilocircular.co', clave: 'demo123' }); setError('') }}
-                >
-                  valentina@hilocircular.co
-                </Boton>
-                <Boton
-                  type="button"
-                  variante="fantasma"
-                  tamano="sm"
-                  onClick={() => { setFormulario({ ...formulario, email: 'admin@hilocircular.co', clave: 'demo123' }); setError('') }}
-                >
-                  admin@hilocircular.co
-                </Boton>
-              </div>
-            </div>
+            <p className="auth-privacidad">
+              Tus datos de contacto y tu dirección solo se usan para coordinar intercambios. Nunca se muestran en el catálogo.
+            </p>
           </form>
         </div>
       </div>

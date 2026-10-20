@@ -104,9 +104,10 @@ export const TIPO_POR_CATEGORIA = {
  * @param {string} tipo  clave de FORMAS (o se deduce de la categoría)
  * @param {string[]} paleta dos colores [base, detalle]
  */
-export default function Garment({ tipo, categoría, categoria, paleta = ['#6872aa', '#e5c4c6'], className = '', alt = '' }) {
+export default function Garment({ tipo, categoría, categoria, paleta, className = '', alt = '' }) {
   const clave = tipo ?? TIPO_POR_CATEGORIA[categoria ?? categoría] ?? 'camiseta'
-  const [a, b] = paleta
+  const colores = Array.isArray(paleta) && paleta.length >= 2 ? paleta : ['#6872aa', '#e5c4c6']
+  const [a, b] = colores
   const dibujo = (FORMAS[clave] ?? FORMAS.camiseta)(a, b)
   return (
     <svg className={`prenda-arte ${className}`} viewBox="0 0 200 240" role="img" aria-label={alt}>

@@ -1,11 +1,14 @@
 import { useState } from 'react'
+import ChatIntercambio from '../components/ChatIntercambio.jsx'
+import DetallePrenda from '../components/DetallePrenda.jsx'
 import PanelShell from '../components/PanelShell.jsx'
-import Garment from '../components/Garment.jsx'
 import Mascot from '../components/Mascot.jsx'
 import PrendaCard from '../components/PrendaCard.jsx'
+import PrendaMini from '../components/PrendaMini.jsx'
+import SeguimientoEnvio from '../components/SeguimientoEnvio.jsx'
 import {
   Aparece, Area, Avatar, Barra, Boton, Campo, Dato, Entrada, EstadoVacio,
-  Estrellas, Etiqueta, Modal, Pasos, Pestanas, Selector,
+  Estrellas, Etiqueta, Modal, Pestanas, Selector,
 } from '../components/ui.jsx'
 import { navigate } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
@@ -23,14 +26,13 @@ const SECCIONES = [
   { valor: 'ajustes', texto: 'Ajustes', icono: 'ajustes' },
 ]
 
-const ESTADOS_SEGUIMIENTO = ['Preparando', 'En camino', 'Entregado']
 const ESTADOS_CERRADOS = new Set(['Rechazado', 'Completado', 'Cancelado'])
 
 export default function Panel({ seccion = 'resumen' }) {
   const {
     usuario, usuarios, prendas, pedidos, intercambios, resenas, favoritos, buscarPrenda, buscarUsuario, notificaciones,
     fecha, precio, actualizarPerfil, destacar, eliminarPrenda, alternarDisponible,
-    responderResena, avisar, responderSolicitud, crearPedido, publicarPrenda,
+    responderResena, avisar, responderSolicitud, publicarPrenda, solicitarVerificacion, moverPedido,
   } = useStore()
 
   const [vista, setVista] = useState(SECCIONES.some((s) => s.valor === seccion) ? seccion : 'resumen')
@@ -42,6 +44,8 @@ export default function Panel({ seccion = 'resumen' }) {
   })
   const [subirAbierto, setSubirAbierto] = useState(false)
   const [envioDetalle, setEnvioDetalle] = useState(null)
+  const [detallePrenda, setDetallePrenda] = useState(null)
+  const [charla, setCharla] = useState(null)
   const [filtroIntercambios, setFiltroIntercambios] = useState('todos')
   const [nuevaPrenda, setNuevaPrenda] = useState({ titulo: '', categoria: 'Camisetas', talla: 'M', estado: 'Como nuevo', color: 'Lavanda', descripcion: '', foto: '' })
   const [archivoFoto, setArchivoFoto] = useState(null)
@@ -50,8 +54,12 @@ export default function Panel({ seccion = 'resumen' }) {
 
   const mias = prendas.filter((p) => p.duenoId === usuario.id)
   const misPedidos = pedidos.filter((p) => p.usuarioId === usuario.id || p.receptorId === usuario.id)
+  // Los modales guardan el id para reflejar los cambios de estado en vivo.
+  const envioActual = envioDetalle ? misPedidos.find((p) => p.id === envioDetalle.id) ?? envioDetalle : null
   const misResenas = resenas.filter((r) => r.paraId === usuario.id)
   const misIntercambios = intercambios.filter((x) => x.receptorId === usuario.id || x.solicitanteId === usuario.id)
+  const charlaActual = charla ? misIntercambios.find((x) => x.id === charla.id) ?? charla : null
+  const detalleActual = detallePrenda ? prendas.find((p) => p.id === detallePrenda.id) ?? detallePrenda : null
   const pendientes = misIntercambios.filter((x) => x.receptorId === usuario.id && x.estado === 'Pendiente')
   const intercambiosFiltrados = misIntercambios.filter((x) => {
     if (filtroIntercambios === 'por-responder') return x.receptorId === usuario.id && x.estado === 'Pendiente'
@@ -60,7 +68,7 @@ export default function Panel({ seccion = 'resumen' }) {
     return true
   })
   const misFavoritos = prendas.filter((p) => favoritos.includes(p.id))
-  const promedio = misResenas.length ? misResenas.reduce((s, r) => s + r.estrellas, 0) / misResenas.length : usuario.reputacion
+  const promedio = Number(misResenas.length ? misResenas.reduce((s, r) => s + r.estrellas, 0) / misResenas.length : (usuario.reputacion ?? 0))
 
   const notificacionesUsuario = notificaciones
 
@@ -94,8 +102,6 @@ export default function Panel({ seccion = 'resumen' }) {
   const aceptarSolicitud = (x) => {
     if (x.estado !== 'Pendiente' || x.receptorId !== usuario.id) return
     responderSolicitud(x.id, 'Aceptado')
-    const prenda = buscarPrenda(x.prendaId)
-    crearPedido({ prendaId: x.prendaId, intercambioId: x.id, usuarioId: x.receptorId, receptorId: x.solicitanteId, metodo: 'Domicilio', ciudad: prenda?.ciudad ?? usuario.ciudad, costo: 11900, transportadora: 'Servientrega' })
   }
 
   const cambiar = (valor) => {
@@ -224,12 +230,15 @@ export default function Panel({ seccion = 'resumen' }) {
                           prenda={p}
                           onEliminar={eliminarPrenda}
                           acciones={
-                            <div className="chips" style={{ marginTop: '0.6rem' }}>
+                            <div className="chips acciones-prenda" style={{ marginTop: '0.6rem' }}>
                               <button className="chip" onClick={() => alternarDisponible(p.id)}>
                                 {p.disponible ? 'Pausar' : 'Activar'}
                               </button>
                               <button className="chip" onClick={() => destacar(p.id)}>
                                 {p.destacada ? 'Quitar destacado' : 'Postular a destacado'}
+                              </button>
+                              <button className="chip chip-detalle" onClick={() => setDetallePrenda(p)}>
+                                Ver detalle
                               </button>
                             </div>
                           }
@@ -284,24 +293,37 @@ export default function Panel({ seccion = 'resumen' }) {
                             <Etiqueta tono={tonoEstado}>{x.estado}</Etiqueta>
                           </div>
                           <div className="intercambio-prendas">
-                            <Garment tipo={ofrece?.tipo} paleta={ofrece?.paleta} alt="" />
+                            <div className="intercambio-prenda-panel">
+                              <PrendaMini prenda={ofrece} onClick={() => setDetallePrenda(ofrece)} />
+                              <small>{ofrece?.titulo ?? 'Prenda ofrecida'}</small>
+                            </div>
                             <span className="intercambio-flecha" aria-hidden="true">⇄</span>
-                            <Garment tipo={pide?.tipo} paleta={pide?.paleta} alt="" />
+                            <div className="intercambio-prenda-panel">
+                              <PrendaMini prenda={pide} onClick={() => setDetallePrenda(pide)} />
+                              <small>{pide?.titulo ?? 'Prenda solicitada'}</small>
+                            </div>
                           </div>
                           <p className="intercambio-panel-descripcion">{ofrece?.titulo ?? 'Prenda ofrecida'} por <b>{pide?.titulo ?? 'prenda solicitada'}</b></p>
                           {x.mensaje && <p className="intercambio-panel-mensaje">“{x.mensaje}”</p>}
-                          {x.estado === 'Pendiente' && esEntrante && (
-                            <div className="intercambio-acciones">
-                              <Boton tamano="sm" onClick={() => aceptarSolicitud(x)}>Aceptar y crear envío</Boton>
-                              <Boton tamano="sm" variante="fantasma" onClick={() => responderSolicitud(x.id, 'Rechazado')}>Rechazar</Boton>
-                            </div>
-                          )}
-                          {x.estado === 'Pendiente' && !esEntrante && (
-                            <div className="intercambio-acciones">
+                          <div className="intercambio-acciones">
+                            <Boton tamano="sm" variante="fantasma" onClick={() => setCharla(x)}>Abrir chat</Boton>
+                            <Boton tamano="sm" variante="texto" onClick={() => setDetallePrenda(pide ?? ofrece)}>Ver prendas</Boton>
+                            {x.estado === 'Pendiente' && esEntrante && (
+                              <>
+                                <Boton tamano="sm" onClick={() => aceptarSolicitud(x)}>Aceptar</Boton>
+                                <Boton tamano="sm" variante="fantasma" onClick={() => responderSolicitud(x.id, 'Rechazado')}>Rechazar</Boton>
+                              </>
+                            )}
+                            {x.estado === 'Pendiente' && !esEntrante && (
                               <Boton tamano="sm" variante="fantasma" onClick={() => responderSolicitud(x.id, 'Cancelado')}>Cancelar solicitud</Boton>
-                            </div>
-                          )}
-                          {x.estado === 'Aceptado' && <div className="intercambio-acciones"><Boton tamano="sm" variante="lavanda" onClick={() => cambiar('envios')}>Ver envíos</Boton></div>}
+                            )}
+                            {x.estado === 'Aceptado' && (
+                              <>
+                                <Boton tamano="sm" variante="lavanda" onClick={() => navigate(`/domicilio?intercambio=${x.id}`)}>Coordinar domicilio</Boton>
+                                <Boton tamano="sm" variante="fantasma" onClick={() => responderSolicitud(x.id, 'Completado')}>Marcar completado</Boton>
+                              </>
+                            )}
+                          </div>
                         </article>
                       )
                     })}
@@ -347,7 +369,15 @@ export default function Panel({ seccion = 'resumen' }) {
                           const prenda = buscarPrenda(p.prendaId)
                           return (
                             <tr key={p.id}>
-                              <td><b>{prenda?.titulo ?? 'Prenda'}</b><br /><small style={{ opacity: 0.7 }}>{fecha(p.fecha)}</small></td>
+                              <td>
+                                <div className="celda-prenda">
+                                  <PrendaMini prenda={prenda} tamano="xs" onClick={() => prenda && setDetallePrenda(prenda)} />
+                                  <span>
+                                    <b>{prenda?.titulo ?? 'Prenda'}</b>
+                                    <small>{fecha(p.fecha)}</small>
+                                  </span>
+                                </div>
+                              </td>
                               <td>{p.guia}<br /><small style={{ opacity: 0.7 }}>{p.transportadora}</small></td>
                               <td>{p.metodo}</td>
                               <td>{precio(p.costo)}</td>
@@ -415,9 +445,9 @@ export default function Panel({ seccion = 'resumen' }) {
                                       <Boton
                                         tamano="sm"
                                         disabled={!respuesta.texto.trim()}
-                                        onClick={() => {
-                                          responderResena(r.id, respuesta.texto.trim())
-                                          setRespuesta({ id: '', texto: '' })
+                                        onClick={async () => {
+                                          const ok = await responderResena(r.id, respuesta.texto.trim())
+                                          if (ok) setRespuesta({ id: '', texto: '' })
                                         }}
                                       >
                                         Publicar respuesta
@@ -543,8 +573,8 @@ export default function Panel({ seccion = 'resumen' }) {
                           {usuario.verificado ? 'Verificada' : 'Sin verificar'}
                         </Etiqueta>
                         {!usuario.verificado && (
-                          <Boton tamano="sm" onClick={() => avisar('Te enviamos el enlace para verificar tu identidad.', 'ok')}>
-                            Verificar ahora
+                          <Boton tamano="sm" onClick={() => solicitarVerificacion()}>
+                            Solicitar verificación
                           </Boton>
                         )}
                       </div>
@@ -582,29 +612,30 @@ export default function Panel({ seccion = 'resumen' }) {
           <Campo etiqueta="Descripción" ayuda="Describe el uso, el estado y los detalles visibles (mínimo 20 caracteres)." id="panel-prenda-descripcion"><Area id="panel-prenda-descripcion" value={nuevaPrenda.descripcion} onChange={(e) => setNuevaPrenda({ ...nuevaPrenda, descripcion: e.target.value })} rows={4} required /></Campo>
         </form>
       </Modal>
-      <Modal abierto={Boolean(envioDetalle)} onCerrar={() => setEnvioDetalle(null)} titulo={envioDetalle ? `Seguimiento ${envioDetalle.guia}` : 'Seguimiento del envío'} descripcion="Consulta la información registrada para este domicilio." ancho="42rem" pie={<Boton onClick={() => setEnvioDetalle(null)}>Cerrar</Boton>}>
-        {envioDetalle && (() => {
-          const prenda = buscarPrenda(envioDetalle.prendaId)
-          const destino = buscarUsuario(envioDetalle.receptorId)
-          const actual = ESTADOS_SEGUIMIENTO.indexOf(envioDetalle.estado)
-          return (
-            <div className="panel-seguimiento-detalle">
-              <div className="panel-seguimiento-cifras">
-                <div><small>Prenda</small><b>{prenda?.titulo ?? 'Prenda del intercambio'}</b></div>
-                <div><small>Transportadora</small><b>{envioDetalle.transportadora}</b></div>
-                <div><small>Guía</small><b>{envioDetalle.guia}</b></div>
-                <div><small>Costo</small><b>{precio(envioDetalle.costo)}</b></div>
-                <div><small>Origen</small><b>{prenda?.ciudad ?? usuario.ciudad}</b></div>
-                <div><small>Destino</small><b>{destino?.ciudad ?? envioDetalle.ciudad}</b></div>
-              </div>
-              {envioDetalle.estado === 'Incidencia' ? (
-                <div className="panel-envio-incidencia" role="status"><b>Este envío tiene una incidencia.</b><p>El equipo de Hilo Circular debe revisar el movimiento antes de continuar con el seguimiento.</p></div>
-              ) : <Pasos pasos={ESTADOS_SEGUIMIENTO} actual={Math.max(0, actual)} />}
-              <p className="panel-seguimiento-fecha">Última fecha registrada: {fecha(envioDetalle.fecha)} · Estado actual: <b>{envioDetalle.estado}</b></p>
-            </div>
-          )
-        })()}
+      <Modal abierto={Boolean(envioActual)} onCerrar={() => setEnvioDetalle(null)} titulo={envioActual ? `Seguimiento ${envioActual.guia}` : 'Seguimiento del envío'} descripcion="Solo tú y la otra persona del intercambio pueden ver esta información." ancho="46rem" pie={<Boton onClick={() => setEnvioDetalle(null)}>Cerrar</Boton>}>
+        {envioActual && (
+          <SeguimientoEnvio
+            pedido={envioActual}
+            onVerPrenda={() => {
+              const prenda = buscarPrenda(envioActual.prendaId)
+              if (prenda) setDetallePrenda(prenda)
+            }}
+            onAvanzar={(pedido, estado) => moverPedido(pedido.id, estado)}
+          />
+        )}
       </Modal>
+
+      <ChatIntercambio
+        intercambio={charlaActual}
+        abierto={Boolean(charla)}
+        onCerrar={() => setCharla(null)}
+        onVerPrenda={(prenda) => prenda && setDetallePrenda(prenda)}
+      />
+      <DetallePrenda
+        prenda={detalleActual}
+        abierto={Boolean(detallePrenda)}
+        onCerrar={() => setDetallePrenda(null)}
+      />
     </PanelShell>
   )
 }

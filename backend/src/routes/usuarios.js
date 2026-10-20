@@ -26,6 +26,35 @@ router.put('/me', authRequerida, asincrono(async (req, res) => {
   res.json({ usuario: usuarioSeguro(rows[0]) })
 }))
 
+// POST /api/usuarios/me/verificacion  → solicita revisión al equipo
+router.post('/me/verificacion', authRequerida, asincrono(async (req, res) => {
+  if (req.usuario.verificado) throw errorHttp(409, 'Tu identidad ya está verificada.')
+  const { rows: abiertas } = await q(
+    "SELECT id FROM reportes WHERE usuario_id = $1 AND tipo = 'Verificación' AND estado <> 'Resuelto' LIMIT 1",
+    [req.usuario.id],
+  )
+  if (abiertas.length) throw errorHttp(409, 'Ya tienes una solicitud de verificación en revisión.')
+
+  await q(
+    "INSERT INTO reportes (tipo, motivo, usuario_id, estado) VALUES ('Verificación', 'Solicitud de verificación de identidad', $1, 'En revisión')",
+    [req.usuario.id],
+  )
+  const { rows: admins } = await q("SELECT id FROM usuarios WHERE rol = 'admin' AND estado = 'activo'")
+  for (const admin of admins) {
+    await q(
+      'INSERT INTO notificaciones (usuario_id, tipo, texto, fecha, destino) VALUES ($1,$2,$3,$4,$5)',
+      [
+        admin.id,
+        'sistema',
+        `${req.usuario.nombre} solicitó verificación de identidad.`,
+        'Ahora',
+        '/admin/reportes',
+      ],
+    )
+  }
+  res.status(201).json({ ok: true, mensaje: 'Solicitud enviada al equipo de moderación.' })
+}))
+
 // PATCH /api/usuarios/:id/estado  (admin, alterna activo/suspendido)
 router.patch('/:id/estado', authRequerida, asincrono(async (req, res) => {
   if (req.usuario.rol !== 'admin') throw errorHttp(403, 'Esta acción es solo para el equipo.')

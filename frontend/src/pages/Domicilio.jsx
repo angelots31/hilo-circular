@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import DetallePrenda from '../components/DetallePrenda.jsx'
 import Mascot from '../components/Mascot.jsx'
-import { Aparece, Boton, Campo, Etiqueta, Seccion, Selector, TituloSeccion, Modal } from '../components/ui.jsx'
+import SeguimientoEnvio from '../components/SeguimientoEnvio.jsx'
+import { Aparece, Boton, Campo, Etiqueta, EstadoVacio, Seccion, Selector, TituloSeccion, Modal } from '../components/ui.jsx'
 import { href, navigate, useRoute } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
 import { CIUDADES, TALLERES } from '../lib/seed.js'
@@ -11,8 +13,6 @@ const PASOS_ENVIO = [
   { titulo: 'Viaja con guía', texto: 'Te compartimos la guía y puedes seguir el recorrido desde tu panel de usuario.' },
   { titulo: 'Entrega y reseña', texto: 'Al recibir, confirmas la entrega y las dos personas se califican.' },
 ]
-
-const ESTADOS_SEGUIMIENTO = ['Preparando', 'En camino', 'Entregado']
 
 const TARIFAS = { Medellín: 10900 }
 const TARIFAS_EXTRA = { Medellín: 0 }
@@ -25,18 +25,19 @@ const PUNTOS = [
 ]
 
 export default function Domicilio() {
-  const { pedidos, prendas, usuario, buscarPrenda, buscarUsuario, fecha, precio, crearPedido, moverPedido, avisar, usuarios, intercambios } = useStore()
+  const { pedidos, usuario, buscarPrenda, buscarUsuario, precio, crearPedido, moverPedido, avisar, intercambios } = useStore()
   const origen = 'Medellín'
   const destino = 'Medellín'
   const [metodo, setMetodo] = useState('Domicilio')
   const [prendasEnvio, setPrendasEnvio] = useState(1)
   const [abierto, setAbierto] = useState(false)
+  const [detalle, setDetalle] = useState(null)
   const [nuevoEnvio, setNuevoEnvio] = useState({ intercambioId: '', metodo: 'Domicilio', transportadora: 'Servientrega' })
 
+  // El seguimiento es privado: nunca mostramos envíos de otras personas.
   const misEnvios = useMemo(() => {
-    if (!usuario) return pedidos.slice(0, 3)
-    const propios = pedidos.filter((p) => p.usuarioId === usuario.id || p.receptorId === usuario.id)
-    return propios.length ? propios : pedidos.slice(0, 3)
+    if (!usuario) return []
+    return pedidos.filter((p) => p.usuarioId === usuario.id || p.receptorId === usuario.id)
   }, [pedidos, usuario])
 
   const { query } = useRoute()
@@ -46,6 +47,8 @@ export default function Domicilio() {
       (x) =>
         x.estado === 'Aceptado' &&
         (x.solicitanteId === usuario.id || x.receptorId === usuario.id) &&
+        // Cada parte envía su propia prenda; el envío de la otra persona no
+        // debe ocultar el intercambio de mi lista.
         !pedidos.some((p) => p.intercambioId === x.id && p.usuarioId === usuario.id),
     )
   }, [intercambios, pedidos, usuario])
@@ -59,28 +62,37 @@ export default function Domicilio() {
     }
   }, [])
 
-  const costo = useMemo(() => {
-    if (metodo === 'Punto de encuentro') return 0
+  const costoDe = (metodoEntrega) => {
+    if (metodoEntrega === 'Punto de encuentro') return 0
     const base = TARIFAS[destino] ?? 12000
     const descuento = Math.min(prendasEnvio - 1, 3) * 1500
     const largaDistancia = origen === destino ? 0 : 900
     return Math.max(base + largaDistancia - descuento, 0)
-  }, [origen, destino, metodo, prendasEnvio])
+  }
+  const costo = useMemo(
+    () => costoDe(metodo),
+    [origen, destino, metodo, prendasEnvio],
+  )
 
-  const programar = () => {
+  const programar = async () => {
     const x = intercambiosEnvio.find((i) => i.id === nuevoEnvio.intercambioId)
     if (!x) return avisar('Elige el intercambio acordado que quieres enviar.', 'aviso')
     const yoSolicito = x.solicitanteId === usuario.id
     const prenda = buscarPrenda(yoSolicito ? x.ofreceId : x.prendaId)
-    crearPedido({
+    if (!prenda) return avisar('No encontramos la prenda de este intercambio. Actualiza la página e inténtalo de nuevo.', 'aviso')
+    if (pedidos.some((p) => p.intercambioId === x.id && p.usuarioId === usuario.id)) {
+      return avisar('Ya programaste un envío para este intercambio.', 'aviso')
+    }
+    const ok = await crearPedido({
       ...nuevoEnvio,
       prendaId: prenda?.id,
+      intercambioId: x.id,
       receptorId: yoSolicito ? x.receptorId : x.solicitanteId,
       ciudad: prenda?.ciudad ?? destino,
-      costo: nuevoEnvio.metodo === 'Domicilio' ? costo : 0,
+      costo: costoDe(nuevoEnvio.metodo),
       usuarioId: usuario?.id,
     })
-    setAbierto(false)
+    if (ok) setAbierto(false)
   }
 
   return (
@@ -229,73 +241,48 @@ export default function Domicilio() {
         </div>
       </Seccion>
 
-      <Seccion tono="claro">
+      <Seccion tono="claro" id="seguimiento">
         <div className="contenedor">
           <TituloSeccion
-            ceja="Seguimiento"
-            titulo={usuario ? 'Tus envíos en curso' : 'Así se ve el seguimiento'}
-            texto="Cada envío tiene una guía y tres estados: preparando, en camino y entregado."
-            accion={usuario ? <Boton variante="fantasma" onClick={abrirEnvio}>Programar otro envío</Boton> : <Boton to="/entrar?volver=/domicilio">Iniciar sesión</Boton>}
+            ceja="Seguimiento privado"
+            titulo={usuario ? 'Tus envíos en curso' : 'Tu seguimiento, solo para ti'}
+            texto="El estado de cada envío, la guía y el nombre de la persona que recibe solo son visibles para las dos partes del intercambio."
+            accion={usuario ? <Boton variante="fantasma" onClick={abrirEnvio}>Programar otro envío</Boton> : null}
           />
 
-          <div className="rejilla dos">
-            {misEnvios.map((envio, i) => {
-              const prenda = buscarPrenda(envio.prendaId)
-              const receptor = buscarUsuario(envio.receptorId)
-              const actual = ESTADOS_SEGUIMIENTO.indexOf(envio.estado)
-              return (
+          {!usuario ? (
+            <div className="seguimiento-privado">
+              <div className="seguimiento-candado" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><rect x="4.5" y="10" width="15" height="10" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" strokeWidth="1.8" /></svg>
+              </div>
+              <div>
+                <b>Inicia sesión para ver tus envíos</b>
+                <p>Por privacidad no mostramos guías ni envíos de otras personas. Tus datos aparecen únicamente en tu cuenta.</p>
+              </div>
+              <Boton to="/entrar?volver=/domicilio">Iniciar sesión</Boton>
+            </div>
+          ) : misEnvios.length === 0 ? (
+            <EstadoVacio
+              compacto
+              pose="camina"
+              titulo="Todavía no tienes envíos programados"
+              texto="Cuando aceptes un intercambio podrás coordinar aquí la recolección o el punto de encuentro."
+              accion={<Boton to="/intercambios">Ver mis intercambios</Boton>}
+              secundario={<Boton variante="fantasma" onClick={abrirEnvio}>Programar un envío</Boton>}
+            />
+          ) : (
+            <div className="rejilla dos">
+              {misEnvios.map((envio, i) => (
                 <Aparece key={envio.id} retraso={i * 70}>
-                  <article className="panel-tarjeta">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                      <div>
-                        <b style={{ fontFamily: 'var(--fuente-titulo)', fontSize: '1.1rem' }}>{prenda?.titulo ?? 'Prenda'}</b>
-                        <p style={{ fontSize: '0.85rem', opacity: 0.72 }}>
-                          Guía {envio.guia} · {envio.transportadora} · para {receptor?.nombre}
-                        </p>
-                      </div>
-                      <Etiqueta tono={envio.estado === 'Entregado' ? 'verde' : envio.estado === 'Incidencia' ? 'rojo' : 'ambar'}>
-                        {envio.estado}
-                      </Etiqueta>
-                    </div>
-
-                    <div className="seguimiento">
-                      {[...ESTADOS_SEGUIMIENTO, 'Reseña'].map((paso, j) => (
-                        <div key={paso} className={`seguimiento-paso ${j <= actual ? 'hecho' : ''}`}>
-                          <b>{paso}</b>
-                          <span style={{ opacity: 0.7, fontSize: '0.78rem' }}>
-                            {j === 0 && fecha(envio.fecha)}
-                            {j === 2 && 'Confirmado por quien recibe'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginTop: '1.2rem' }}>
-                      <Etiqueta tono="neutro">{envio.metodo}</Etiqueta>
-                      <Etiqueta tono="neutro">{precio(envio.costo)}</Etiqueta>
-                      {envio.estado !== 'Entregado' && (
-                        <Boton
-                          tamano="sm"
-                          variante="fantasma"
-                          onClick={() =>
-                            moverPedido(
-                              envio.id,
-                              ESTADOS_SEGUIMIENTO[Math.min(actual + 1, ESTADOS_SEGUIMIENTO.length - 1)],
-                            )
-                          }
-                        >
-                          Avanzar estado
-                        </Boton>
-                      )}
-                      <Boton tamano="sm" variante="texto" onClick={() => avisar('Abrimos el chat del envío con la transportadora.', 'info')}>
-                        Contactar transportadora
-                      </Boton>
-                    </div>
-                  </article>
+                  <SeguimientoEnvio
+                    pedido={envio}
+                    onVerPrenda={() => setDetalle(buscarPrenda(envio.prendaId))}
+                    onAvanzar={(pedido, estado) => moverPedido(pedido.id, estado)}
+                  />
                 </Aparece>
-              )
-            })}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </Seccion>
 
@@ -384,11 +371,17 @@ export default function Domicilio() {
         <div className="cotizador-resultado">
           <div>
             <p style={{ fontSize: '0.82rem', opacity: 0.8 }}>Costo estimado del envío</p>
-            <b>{precio(nuevoEnvio.metodo === 'Domicilio' ? costo : 0)}</b>
+            <b>{precio(costoDe(nuevoEnvio.metodo))}</b>
           </div>
           <Etiqueta tono="claro">Incluye seguimiento</Etiqueta>
         </div>
       </Modal>
+
+      <DetallePrenda
+        prenda={detalle}
+        abierto={Boolean(detalle)}
+        onCerrar={() => setDetalle(null)}
+      />
     </>
   )
 }

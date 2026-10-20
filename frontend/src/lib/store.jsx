@@ -12,6 +12,7 @@ const ESTADO_VACIO = {
   reportes: [],
   favoritos: [],
   notificaciones: [],
+  mensajes: [],
   usuario: null,
 }
 
@@ -24,23 +25,45 @@ export function StoreProvider({ children }) {
   const avisar = useCallback((texto, tono = 'info') => {
     const id = `a${Date.now()}${Math.random().toString(16).slice(2, 6)}`
     setAvisos((lista) => [...lista, { id, texto, tono }])
-    setTimeout(() => setAvisos((lista) => lista.filter((a) => a.id !== id)), 4200)
+    setTimeout(() => setAvisos((lista) => lista.filter((a) => a.id !== id)), 5200)
+  }, [])
+
+  const cerrarAviso = useCallback((id) => {
+    setAvisos((lista) => lista.filter((a) => a.id !== id))
   }, [])
 
   /** Trae del backend todo lo que la pantalla necesita. */
-  const cargar = useCallback(async () => {
+  const cargar = useCallback(async (silencioso = false) => {
     try {
       const datos = await api.datos()
-      setState({ ...ESTADO_VACIO, ...datos, favoritos: datos.favoritos ?? [] })
+      setState({
+        ...ESTADO_VACIO,
+        ...datos,
+        favoritos: datos.favoritos ?? [],
+        mensajes: datos.mensajes ?? [],
+      })
     } catch (error) {
-      if (!(error instanceof ApiError && error.estado === 401)) avisar(error.message, 'aviso')
-      setState(ESTADO_VACIO)
+      if (error instanceof ApiError && error.estado === 401) {
+        fijarToken(null)
+        setState(ESTADO_VACIO)
+      } else {
+        if (!silencioso) avisar(error.message, 'aviso')
+        // Si ya había una sesión cargada, un fallo de red no debe borrar la pantalla.
+        setState((previo) => (previo.usuario ? previo : ESTADO_VACIO))
+      }
     } finally {
       setCargando(false)
     }
   }, [avisar])
 
   useEffect(() => { cargar() }, [cargar])
+
+  // Mantiene al día notificaciones y chats mientras haya una sesión abierta.
+  useEffect(() => {
+    if (!state.usuario) return undefined
+    const temporizador = setInterval(() => cargar(true), 25000)
+    return () => clearInterval(temporizador)
+  }, [state.usuario?.id, cargar])
 
   /** Ejecuta una acción contra la API, recarga los datos y avisa el resultado. */
   const ejecutar = useCallback(async (accion, mensajeOk, tonoOk = 'ok') => {
@@ -81,6 +104,7 @@ export function StoreProvider({ children }) {
       cargando,
       avisos,
       avisar,
+      cerrarAviso,
       esAdmin,
       buscarUsuario,
       buscarPrenda,
@@ -93,6 +117,13 @@ export function StoreProvider({ children }) {
           ? '—'
           : valor.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
       },
+      fechaHora: (iso) => {
+        if (!iso) return '—'
+        const valor = new Date(iso)
+        return Number.isNaN(valor.getTime())
+          ? '—'
+          : valor.toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+      },
 
       entrar,
       registrar,
@@ -103,13 +134,28 @@ export function StoreProvider({ children }) {
         avisar('Cerraste sesión. ¡Vuelve pronto!', 'info')
       },
 
+      marcarNotificacionesLeidas: async () => {
+        try {
+          await api.marcarNotificacionesLeidas()
+          await cargar()
+        } catch (error) {
+          avisar(error.message || 'No pudimos actualizar las notificaciones.', 'aviso')
+        }
+      },
+
       actualizarPerfil: (datos) => ejecutar(() => api.actualizarPerfil(datos), 'Perfil actualizado correctamente.'),
+      solicitarVerificacion: () => ejecutar(() => api.solicitarVerificacion(), 'Solicitud de verificación enviada al equipo.'),
+      suscribir: (email) => ejecutar(() => api.suscribir(email), '¡Listo! Guardamos tu correo para enviarte la agenda de talleres.'),
 
       publicarPrenda: (datos) => ejecutar(() => api.publicarPrenda(datos), '¡Tu prenda quedó publicada y ya hace parte del catálogo!'),
       importarPrendas: (prendas) => ejecutar(() => api.importarPrendas(prendas)),
       eliminarPrenda: (id) => ejecutar(() => api.eliminarPrenda(id), 'Prenda retirada del catálogo.', 'aviso'),
       alternarDisponible: (id) => ejecutar(() => api.alternarDisponible(id)),
-      destacar: (id, valor) => ejecutar(() => api.destacar(id, valor)),
+      destacar: (id, valor) => ejecutar(async () => {
+        const respuesta = await api.destacar(id, valor)
+        if (respuesta?.solicitud) avisar('Postulación enviada al equipo de curaduría.', 'ok')
+        return respuesta
+      }),
       alternarFavorito: (id) => {
         if (!state.usuario) { avisar('Inicia sesión para guardar prendas en tus favoritos.', 'aviso'); return }
         const activo = !state.favoritos.includes(id)
@@ -118,6 +164,7 @@ export function StoreProvider({ children }) {
       registrarVista: (id) => { api.registrarVista(id).catch(() => {}) },
 
       solicitar: (datos) => ejecutar(() => api.solicitar(datos), 'Solicitud enviada. Te avisaremos cuando respondan.'),
+      enviarMensaje: (id, texto) => ejecutar(() => api.enviarMensaje(id, texto)),
       responderSolicitud: (id, estado) => {
         const mensajes = {
           Aceptado: ['Intercambio aceptado. Ya puedes coordinar el envío.', 'ok'],
@@ -141,7 +188,7 @@ export function StoreProvider({ children }) {
       suspenderUsuario: (id) => ejecutar(() => api.suspenderUsuario(id), 'Estado de la cuenta actualizado.', 'aviso'),
       verificarUsuario: (id) => ejecutar(() => api.verificarUsuario(id), 'Verificación actualizada.'),
     }
-  }, [state, cargando, avisos, avisar, cargar, ejecutar, entrar, registrar])
+  }, [state, cargando, avisos, avisar, cerrarAviso, cargar, ejecutar, entrar, registrar])
 
   return <StoreContext.Provider value={valor}>{children}</StoreContext.Provider>
 }

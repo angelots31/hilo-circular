@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useEffect, useRef, useState } from 'react'
 import Mascot from './Mascot.jsx'
 import { Adornos } from './Adornos.jsx'
 import { href } from '../lib/router.jsx'
@@ -100,7 +100,10 @@ export function Campo({ etiqueta, ayuda, error, id, children, className = '' }) 
   )
 }
 
-export const Entrada = ({ className = '', ...resto }) => <input className={`entrada ${className}`.trim()} {...resto} />
+export const Entrada = forwardRef(({ className = '', ...resto }, ref) => (
+  <input ref={ref} className={`entrada ${className}`.trim()} {...resto} />
+))
+Entrada.displayName = 'Entrada'
 export const Selector = ({ children, className = '', ...resto }) => (
   <select className={`entrada selector ${className}`.trim()} {...resto}>
     {children}
@@ -110,15 +113,20 @@ export const Area = ({ className = '', ...resto }) => <textarea className={`entr
 
 /* ------------------------------------------------------------------- Modal */
 
+let modalesAbiertos = 0
+
 export function Modal({ abierto, onCerrar, titulo, descripcion, children, pie, ancho = '38rem' }) {
   useEffect(() => {
-    if (!abierto) return
+    if (!abierto) return undefined
     const onKey = (e) => e.key === 'Escape' && onCerrar?.()
+    modalesAbiertos += 1
     document.body.style.overflow = 'hidden'
     addEventListener('keydown', onKey)
     return () => {
-      document.body.style.overflow = ''
       removeEventListener('keydown', onKey)
+      modalesAbiertos = Math.max(0, modalesAbiertos - 1)
+      // Si hay otro modal debajo (por ejemplo, detalle sobre el chat), no liberamos el scroll.
+      if (modalesAbiertos === 0) document.body.style.overflow = ''
     }
   }, [abierto, onCerrar])
 
@@ -258,6 +266,13 @@ export function Dona({ datos, total, etiqueta }) {
   const circunferencia = 2 * Math.PI * radio
   const suma = datos.reduce((s, d) => s + d.valor, 0)
   const colores = ['#6872aa', '#5d4655', '#e5c4c6', '#9aa98d', '#c8a179', '#7f9cc4', '#c9b9dd']
+  if (!datos.length || suma <= 0) {
+    return (
+      <div className="dona dona-vacia">
+        <p>Sin datos todavía. Cuando se publiquen prendas, aquí aparecerá la distribución por categoría.</p>
+      </div>
+    )
+  }
   return (
     <div className="dona">
       <svg viewBox="0 0 160 160" role="img" aria-label="Distribución por categoría">

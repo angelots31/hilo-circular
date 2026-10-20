@@ -23,7 +23,7 @@ db.public.registerFunction({ name: 'now', returns: DataType.timestamptz, impleme
 
 const quitarExtensiones = (sql) => sql.replace(/CREATE EXTENSION[^;]*;/gi, '')
 db.public.none(quitarExtensiones(fs.readFileSync(path.join(sqlDir, 'schema.sql'), 'utf8')))
-db.public.none(quitarExtensiones(fs.readFileSync(path.join(sqlDir, 'seed.sql'), 'utf8')))
+db.public.none(quitarExtensiones(fs.readFileSync(path.join(sqlDir, 'seed-demo.sql'), 'utf8')))
 
 const { configurarPool } = await import('../src/db.js')
 configurarPool(new (db.adapters.createPg().Pool)())

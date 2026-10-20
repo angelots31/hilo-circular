@@ -5,7 +5,7 @@
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-DROP TABLE IF EXISTS reportes, pedidos, intercambios, resenas, favoritos, prendas, usuarios CASCADE;
+DROP TABLE IF EXISTS mensajes, notificaciones, reportes, pedidos, intercambios, resenas, favoritos, prendas, suscriptores, usuarios CASCADE;
 
 -- ---------------------------------------------------------- usuarios
 CREATE TABLE usuarios (
@@ -90,6 +90,18 @@ CREATE TABLE intercambios (
 );
 CREATE INDEX idx_intercambios_partes ON intercambios(solicitante_id, receptor_id);
 
+-- ---------------------------------------------------------- mensajes
+-- Chat privado ligado a un intercambio. Solo lo ven sus dos participantes
+-- (y el equipo de administración para moderación).
+CREATE TABLE mensajes (
+  id             text PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  intercambio_id text NOT NULL REFERENCES intercambios(id) ON DELETE CASCADE,
+  autor_id       text NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  texto          text NOT NULL,
+  creada         timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_mensajes_intercambio ON mensajes(intercambio_id, creada);
+
 -- ---------------------------------------------------------- pedidos (envíos)
 CREATE TABLE pedidos (
   id               text PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -134,3 +146,10 @@ CREATE TABLE notificaciones (
   creada     timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_notificaciones_usuario ON notificaciones(usuario_id);
+
+-- ---------------------------------------------------------- suscriptores
+-- Correos que piden la agenda de talleres desde el pie de página.
+CREATE TABLE suscriptores (
+  email  text PRIMARY KEY,
+  creado timestamptz NOT NULL DEFAULT now()
+);

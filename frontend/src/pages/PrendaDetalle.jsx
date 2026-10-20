@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import Garment from '../components/Garment.jsx'
+import PrendaMini from '../components/PrendaMini.jsx'
 import { Vista, vistasDe } from '../components/Carrusel.jsx'
 import Mascot from '../components/Mascot.jsx'
 import PrendaCard from '../components/PrendaCard.jsx'
 import { Avatar, Area, Boton, Campo, Estrellas, Etiqueta, Modal, Seccion, Selector, TituloSeccion, Aparece } from '../components/ui.jsx'
 import { navigate } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
+import { compartirEnlace } from '../lib/compartir.js'
 
 export default function PrendaDetalle({ id }) {
   const [vistaIdx, setVistaIdx] = useState(0)
@@ -37,16 +38,29 @@ export default function PrendaDetalle({ id }) {
   const mias = prendas.filter((p) => p.duenoId === usuario?.id && p.disponible)
   const deLaPersona = [...resenas].filter((r) => r.paraId === prenda.duenoId)
   const similares = prendas.filter((p) => p.id !== prenda.id && p.categoria === prenda.categoria && p.disponible).slice(0, 3)
-  const promedio = deLaPersona.length ? deLaPersona.reduce((s, r) => s + r.estrellas, 0) / deLaPersona.length : dueno?.reputacion ?? 0
+  const promedio = Number(deLaPersona.length ? deLaPersona.reduce((s, r) => s + r.estrellas, 0) / deLaPersona.length : (dueno?.reputacion ?? 0))
   const esMia = prenda.duenoId === usuario?.id
 
-  const enviarSolicitud = () => {
+  const enviarSolicitud = async () => {
     if (!usuario) return navigate(`/entrar?volver=/prenda/${id}`)
     if (!ofrecida) return avisar('Elige cuál de tus prendas quieres ofrecer.', 'aviso')
-    solicitar({ prendaId: prenda.id, ofreceId: ofrecida, receptorId: prenda.duenoId, mensaje })
+    const ok = await solicitar({ prendaId: prenda.id, ofreceId: ofrecida, receptorId: prenda.duenoId, mensaje })
+    if (!ok) return
     setAbierto(false)
     setMensaje('')
     navigate('/intercambios')
+  }
+
+  const compartir = async () => {
+    const resultado = await compartirEnlace({
+      titulo: prenda.titulo,
+      texto: `${prenda.titulo} · Talla ${prenda.talla} · Intercambio circular en Medellín`,
+      // Enlace canónico: no arrastra filtros ni parámetros de navegación.
+      url: `${location.origin}${location.pathname}#/prenda/${prenda.id}`,
+    })
+    if (resultado === 'compartido') avisar('Prenda compartida.', 'ok')
+    else if (resultado === 'copiado') avisar('Enlace copiado para compartir esta prenda.', 'ok')
+    else if (resultado === 'error') avisar('No pudimos compartir el enlace. Cópialo desde la barra del navegador.', 'aviso')
   }
 
   return (
@@ -128,7 +142,7 @@ export default function PrendaDetalle({ id }) {
                 <Boton variante={favoritos.includes(prenda.id) ? 'lavanda' : 'fantasma'} tamano="lg" className={favoritos.includes(prenda.id) ? 'prenda-guardada' : ''} onClick={() => alternarFavorito(prenda.id)}>
                   {favoritos.includes(prenda.id) ? '★ Guardada' : '☆ Guardar'}
                 </Boton>
-                <Boton variante="texto" tamano="lg" onClick={() => avisar('Enlace copiado para compartir esta prenda.', 'ok')}>
+                <Boton variante="texto" tamano="lg" onClick={compartir}>
                   Compartir
                 </Boton>
               </div>
@@ -201,7 +215,7 @@ export default function PrendaDetalle({ id }) {
         }
       >
         <div className="tarjeta" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <Garment tipo={prenda.tipo} paleta={prenda.paleta} alt="" className="mini-arte" />
+          <PrendaMini prenda={prenda} tamano="md" />
           <div>
             <b style={{ fontFamily: 'var(--fuente-titulo)' }}>{prenda.titulo}</b>
             <p style={{ fontSize: '0.85rem', opacity: 0.72 }}>Valor ref. {prenda.valor} · Talla {prenda.talla}</p>

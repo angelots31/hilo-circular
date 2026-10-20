@@ -1,15 +1,16 @@
 import { useMemo, useState } from 'react'
+import DetallePrenda from '../components/DetallePrenda.jsx'
 import PanelShell from '../components/PanelShell.jsx'
-import Garment from '../components/Garment.jsx'
 import Mascot from '../components/Mascot.jsx'
+import PrendaMini from '../components/PrendaMini.jsx'
 import {
   Aparece, Avatar, Barra, Barras, Boton, Campo, Dato, Dona, Entrada, EstadoVacio,
   Estrellas, Etiqueta, Pestanas, Selector,
 } from '../components/ui.jsx'
 import { navigate } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
-import { actividad, porCategoria } from '../lib/seed.js'
 import { descargarCSV, descargarPDF, parsearCSV } from '../lib/descargas.js'
+import { copiarTexto } from '../lib/compartir.js'
 
 const SECCIONES = [
   { valor: 'resumen', texto: 'Resumen', icono: 'resumen' },
@@ -40,6 +41,7 @@ export default function Admin({ seccion = 'resumen' }) {
   const [filtroEnvios, setFiltroEnvios] = useState('todos')
   const [filtroResenas, setFiltroResenas] = useState('todas')
   const [filtroReportes, setFiltroReportes] = useState('abiertos')
+  const [detallePrenda, setDetallePrenda] = useState(null)
   const [config, setConfig] = useState(() => {
     const base = { verificacionObligatoria: false, envioGratisPunto: true, moderacionAuto: true, limitePublicaciones: '20' }
     try { return { ...base, ...JSON.parse(localStorage.getItem('hilo-admin-config') || '{}') } } catch { return base }
@@ -55,6 +57,51 @@ export default function Admin({ seccion = 'resumen' }) {
   const activos = usuarios.filter((u) => u.estado === 'activo').length
   const promedio = resenas.length ? resenas.reduce((s, r) => s + r.estrellas, 0) / resenas.length : 0
   const notificacionesAdmin = notificaciones
+
+  // Series reales para el panel: se calculan con los registros de la API.
+  const actividadReal = useMemo(() => {
+    const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    const hoy = new Date()
+    const meses = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(hoy.getFullYear(), hoy.getMonth() - (6 - i), 1)
+      return { mes: MESES[d.getMonth()], clave: `${d.getFullYear()}-${d.getMonth()}`, prendas: 0, intercambios: 0, envios: 0 }
+    })
+    const indice = new Map(meses.map((m, i) => [m.clave, i]))
+    const sumar = (fechaValor, campo) => {
+      if (!fechaValor) return
+      const d = new Date(String(fechaValor).includes('T') ? fechaValor : `${fechaValor}T12:00:00`)
+      if (Number.isNaN(d.getTime())) return
+      const i = indice.get(`${d.getFullYear()}-${d.getMonth()}`)
+      if (i != null) meses[i][campo] += 1
+    }
+    prendas.forEach((p) => sumar(p.creada, 'prendas'))
+    intercambios.forEach((x) => sumar(x.fecha, 'intercambios'))
+    pedidos.forEach((p) => sumar(p.fecha, 'envios'))
+    return meses
+  }, [prendas, intercambios, pedidos])
+
+  const categoriaReal = useMemo(() => {
+    const total = prendas.length || 1
+    const conteo = new Map()
+    prendas.forEach((p) => conteo.set(p.categoria, (conteo.get(p.categoria) ?? 0) + 1))
+    return [...conteo.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([nombre, cantidad]) => ({ nombre, valor: Math.round((cantidad / total) * 100) }))
+  }, [prendas])
+
+  const saludComunidad = useMemo(() => {
+    const totalIntercambios = intercambios.length || 1
+    const totalEnvios = pedidos.length || 1
+    const totalResenas = resenas.length || 1
+    const porcentaje = (cantidad, total) => Math.round((cantidad / total) * 100)
+    return [
+      { texto: 'Intercambios completados', valor: porcentaje(intercambios.filter((x) => x.estado === 'Completado').length, totalIntercambios) },
+      { texto: 'Solicitudes ya respondidas', valor: porcentaje(intercambios.filter((x) => x.estado !== 'Pendiente').length, totalIntercambios) },
+      { texto: 'Envíos entregados', valor: porcentaje(pedidos.filter((p) => p.estado === 'Entregado').length, totalEnvios) },
+      { texto: 'Reseñas de 4 o 5 estrellas', valor: porcentaje(resenas.filter((r) => r.estrellas >= 4).length, totalResenas) },
+    ]
+  }, [intercambios, pedidos, resenas])
 
   const cargarCSVPrendas = async (evento) => {
     const archivo = evento.target.files?.[0]
@@ -77,6 +124,8 @@ export default function Admin({ seccion = 'resumen' }) {
         const calidadCsv = valorDe(fila, 'calidad', 'condicion', 'condición')
         const estadoCsv = valorDe(fila, 'estado')
         const disponibleCsv = normalizar(valorDe(fila, 'disponibilidad', 'disponible'))
+        const duenoId = dueno?.id || usuarios.find((u) => u.rol !== 'admin' && u.estado === 'activo')?.id || usuario?.id
+        if (!duenoId) return null
         const estado = ['nuevo con etiqueta', 'como nuevo', 'buen estado', 'con detalles'].includes(normalizar(calidadCsv || estadoCsv)) ? (calidadCsv || estadoCsv) : 'Buen estado'
         const valor = Number(String(valorDe(fila, 'valor estimado', 'valor', 'precio')).replace(/[^0-9,.-]/g, '').replace(/\.(?=.*\.)/g, '').replace(',', '.'))
         return {
@@ -85,7 +134,8 @@ export default function Admin({ seccion = 'resumen' }) {
           valor: Number.isFinite(valor) && valor >= 0 ? valor : 0,
           descripcion: valorDe(fila, 'descripcion', 'descripción') || 'Prenda importada desde el catálogo CSV.',
           tipo: ({ Calzado: 'zapatillas', Chaquetas: 'chaqueta', Vestidos: 'vestido', Pantalones: 'pantalon', Faldas: 'falda', Abrigos: 'abrigo', Punto: 'sueter', Accesorios: 'bolso' })[categoria] || 'camiseta',
-          paleta: ['#6872aa', '#5d4655'], ciudad: 'Medellín', duenoId: dueno?.id || usuarios.find((u) => u.rol !== 'admin' && u.estado === 'activo')?.id || 'u1',
+          paleta: ['#6872aa', '#5d4655'], ciudad: 'Medellín',
+          duenoId,
           disponible: !['pausada', 'no', 'false', '0', 'inactiva'].includes(normalizar(disponibleCsv || estadoCsv)),
           destacada: ['si', 'sí', 'true', '1', 'destacada'].includes(normalizar(valorDe(fila, 'destacada'))),
         }
@@ -99,6 +149,8 @@ export default function Admin({ seccion = 'resumen' }) {
   }
 
   const filasPDFPrendas = (lista) => lista.map((p) => [p.id, p.titulo, buscarUsuario(p.duenoId)?.nombre ?? 'Sin asignar', p.categoria, p.talla, p.valor, p.disponible ? 'Disponible' : 'Pausada', p.destacada ? 'Sí' : 'No', 'Medellín'])
+
+  const detalleActual = detallePrenda ? prendas.find((p) => p.id === detallePrenda.id) ?? detallePrenda : null
 
   const prendasFiltradas = useMemo(() => {
     const t = busqueda.trim().toLowerCase()
@@ -120,7 +172,7 @@ export default function Admin({ seccion = 'resumen' }) {
       texto="Vista de administración · Moderación de catálogo, usuarios, envíos y comunidad."
       mostrarEncabezado={vista === 'resumen'}
       tituloSeccion={SECCIONES.find((s) => s.valor === vista)?.texto ?? 'Administración'}
-      textoSeccion={{ prendas: 'Modera las publicaciones y la disponibilidad del catálogo.', usuarios: 'Revisa los perfiles y el acceso de la comunidad.', envios: 'Supervisa guías, entregas e incidencias.', resenas: 'Modera las opiniones de la comunidad.', reportes: 'Prioriza y resuelve los reportes abiertos.', configuracion: 'Ajusta las reglas del prototipo.' }[vista] ?? ''}
+      textoSeccion={{ prendas: 'Modera las publicaciones y la disponibilidad del catálogo.', usuarios: 'Revisa los perfiles y el acceso de la comunidad.', envios: 'Supervisa guías, entregas e incidencias.', resenas: 'Modera las opiniones de la comunidad.', reportes: 'Prioriza y resuelve los reportes abiertos.', configuracion: 'Ajusta las reglas de la comunidad.' }[vista] ?? ''}
       notificaciones={notificacionesAdmin}
       usuarioId={usuario?.id}
       secciones={SECCIONES}
@@ -151,31 +203,26 @@ export default function Admin({ seccion = 'resumen' }) {
                   <article className="panel-tarjeta">
                     <h3>Actividad de los últimos siete meses</h3>
                     <p>Publicaciones, intercambios y envíos registrados por mes.</p>
-                    <Barras datos={actividad} claves={CLAVES_GRAFICA} />
+                    <Barras datos={actividadReal} claves={CLAVES_GRAFICA} />
                   </article>
 
                   <article className="panel-tarjeta">
                     <h3>Catálogo por categoría</h3>
                     <p>Participación de cada categoría dentro del catálogo activo.</p>
-                    <Dona datos={porCategoria} total={prendas.length} etiqueta="prendas" />
+                    <Dona datos={categoriaReal} total={prendas.length} etiqueta="prendas" />
                   </article>
 
                   <article className="panel-tarjeta">
                     <h3>Salud de la comunidad</h3>
                     <p>Indicadores que revisamos cada semana.</p>
                     <div style={{ display: 'grid', gap: '0.9rem' }}>
-                      {[
-                        { texto: 'Intercambios completados sin incidencia', valor: 94, tono: 'lavanda' },
-                        { texto: 'Solicitudes respondidas en 24 h', valor: 78, tono: 'lavanda' },
-                        { texto: 'Envíos entregados a tiempo', valor: 88, tono: 'lavanda' },
-                        { texto: 'Reseñas positivas (4 y 5 estrellas)', valor: 91, tono: 'rosa' },
-                      ].map((k) => (
+                      {saludComunidad.map((k, i) => (
                         <div key={k.texto} style={{ display: 'grid', gap: '0.35rem' }}>
                           <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                             <span>{k.texto}</span>
                             <b>{k.valor}%</b>
                           </span>
-                          <Barra valor={k.valor} tono={k.tono} titulo={`${k.texto}: ${k.valor}%`} />
+                          <Barra valor={k.valor} tono={i === 3 ? 'rosa' : 'lavanda'} titulo={`${k.texto}: ${k.valor}%`} />
                         </div>
                       ))}
                     </div>
@@ -273,12 +320,11 @@ export default function Admin({ seccion = 'resumen' }) {
                         {prendasFiltradas.map((p) => (
                           <tr key={p.id}>
                             <td>
-                              <div style={{ display: 'flex', gap: '0.7rem', alignItems: 'center' }}>
-                                <Garment tipo={p.tipo} paleta={p.paleta} alt="" className="arte-tabla" />
+                              <div className="celda-prenda">
+                                <PrendaMini prenda={p} tamano="xs" onClick={() => setDetallePrenda(p)} />
                                 <span>
                                   <b>{p.titulo}</b>
-                                  <br />
-                                  <small style={{ opacity: 0.7 }}>{fecha(p.creada)} · {p.ciudad}</small>
+                                  <small>{fecha(p.creada)} · {p.ciudad}</small>
                                 </span>
                               </div>
                             </td>
@@ -293,6 +339,7 @@ export default function Admin({ seccion = 'resumen' }) {
                             </td>
                             <td>
                               <div className="acciones-celda">
+                                <Boton className="mini" onClick={() => setDetallePrenda(p)}>Detalle</Boton>
                                 <Boton className="mini" variante="fantasma" onClick={() => destacar(p.id)}>
                                   {p.destacada ? 'Quitar' : 'Destacar'}
                                 </Boton>
@@ -321,7 +368,7 @@ export default function Admin({ seccion = 'resumen' }) {
                   <div className="admin-datos-acciones">
                     <Boton variante="fantasma" onClick={() => descargarCSV('hilo-circular-usuarios', ['ID', 'Nombre', 'Correo', 'Ciudad', 'Reputación', 'Intercambios', 'Estado', 'Verificado', 'Rol'], usuarios.map((u) => [u.id, u.nombre, u.email, 'Medellín', u.reputacion, u.intercambios, u.estado, u.verificado ? 'Sí' : 'No', u.rol]))}>Exportar CSV</Boton>
                     <Boton variante="fantasma" onClick={() => descargarPDF('hilo-circular-usuarios', 'Usuarios de Hilo Circular · Medellín', ['ID', 'Nombre', 'Correo', 'Ciudad', 'Reputación', 'Intercambios', 'Estado', 'Verificado', 'Rol'], usuarios.map((u) => [u.id, u.nombre, u.email, 'Medellín', u.reputacion, u.intercambios, u.estado, u.verificado ? 'Sí' : 'No', u.rol]))}>Descargar PDF</Boton>
-                    <Boton variante="fantasma" onClick={() => avisar(`Recordatorio preparado para ${usuarios.filter((u) => !u.verificado && u.estado === 'activo').length} cuentas activas sin verificar. En este prototipo no se envían correos reales.`, 'info')}>Recordar verificaciones</Boton>
+                    <Boton variante="fantasma" onClick={() => descargarCSV('hilo-circular-verificaciones', ['Nombre', 'Correo', 'Barrio', 'Desde'], usuarios.filter((u) => !u.verificado && u.estado === 'activo').map((u) => [u.nombre, u.email, u.barrio, fecha(u.desde)]))}>Exportar pendientes</Boton>
                   </div>
                 </div>
 
@@ -352,7 +399,7 @@ export default function Admin({ seccion = 'resumen' }) {
                             </div>
                           </td>
                           <td>{u.ciudad}</td>
-                          <td><Estrellas valor={Math.round(u.reputacion)} tamano={13} /> <small>{u.reputacion.toFixed(1).replace('.', ',')}</small></td>
+                          <td><Estrellas valor={Math.round(Number(u.reputacion))} tamano={13} /> <small>{Number(u.reputacion).toFixed(1).replace('.', ',')}</small></td>
                           <td>{u.intercambios}</td>
                           <td>{fecha(u.desde)}</td>
                           <td>
@@ -438,7 +485,15 @@ export default function Admin({ seccion = 'resumen' }) {
                           return (
                             <tr key={p.id}>
                               <td><b>{p.guia}</b><br /><small style={{ opacity: 0.7 }}>{fecha(p.fecha)}</small></td>
-                              <td>{prenda?.titulo}</td>
+                              <td>
+                                <div className="celda-prenda">
+                                  <PrendaMini prenda={prenda} tamano="xs" onClick={() => prenda && setDetallePrenda(prenda)} />
+                                  <span>
+                                    <b>{prenda?.titulo ?? 'Prenda'}</b>
+                                    <small>{prenda?.categoria ?? 'Sin categoría'}</small>
+                                  </span>
+                                </div>
+                              </td>
                               <td>{prenda?.ciudad} → {buscarUsuario(p.receptorId)?.ciudad}</td>
                               <td>{p.transportadora}</td>
                               <td>{precio(p.costo)}</td>
@@ -449,6 +504,9 @@ export default function Admin({ seccion = 'resumen' }) {
                               </td>
                               <td>
                                 <div className="acciones-celda">
+                                  <Boton className="mini" variante="fantasma" onClick={() => prenda && setDetallePrenda(prenda)}>
+                                    Ver prenda
+                                  </Boton>
                                   {['Preparando', 'En camino', 'Entregado'].map((estado) => (
                                     <Boton
                                       key={estado}
@@ -516,8 +574,16 @@ export default function Admin({ seccion = 'resumen' }) {
                               <Boton className="mini" variante="fantasma" onClick={() => marcarResena(r.id, !r.reportada)}>
                                 {r.reportada ? 'Restaurar' : 'Marcar'}
                               </Boton>
-                              <Boton className="mini" variante="texto" onClick={() => avisar('Se notificó a ambas partes el resultado de la revisión.', 'ok')}>
-                                Notificar decisión
+                              <Boton
+                                className="mini"
+                                variante="texto"
+                                onClick={async () => {
+                                  const resumen = `Caso ${r.id}: ${r.texto || r.motivo}\nAutor: ${autor?.nombre ?? '—'}\nPersona reseñada: ${para?.nombre ?? '—'}\nEstado: ${r.reportada ? 'Reportada / en revisión' : 'Publicada'}`
+                                  const ok = await copiarTexto(resumen)
+                                  avisar(ok ? 'Resumen del caso copiado para notificar a las partes.' : 'No pudimos copiar el resumen.', ok ? 'ok' : 'aviso')
+                                }}
+                              >
+                                Copiar resumen
                               </Boton>
                             </div>
                           </div>
@@ -685,11 +751,11 @@ export default function Admin({ seccion = 'resumen' }) {
 
                     <div className="panel-tarjeta">
                       <h3>Estado del sistema</h3>
-                      <p>Servicios simulados durante el prototipo.</p>
+                      <p>Servicios que sostienen la operación de la comunidad.</p>
                       <div style={{ display: 'grid', gap: '0.6rem' }}>
-                        <span style={{ display: 'flex', justifyContent: 'space-between' }}><span>API de intercambios</span><Etiqueta tono="ambar">Simulada</Etiqueta></span>
-                        <span style={{ display: 'flex', justifyContent: 'space-between' }}><span>Pasarela de envíos</span><Etiqueta tono="ambar">Simulada</Etiqueta></span>
-                        <span style={{ display: 'flex', justifyContent: 'space-between' }}><span>Almacenamiento de imágenes</span><Etiqueta tono="neutro">Local</Etiqueta></span>
+                        <span style={{ display: 'flex', justifyContent: 'space-between' }}><span>API de intercambios</span><Etiqueta tono="verde">Conectada</Etiqueta></span>
+                        <span style={{ display: 'flex', justifyContent: 'space-between' }}><span>Seguimiento de envíos</span><Etiqueta tono="ambar">Manual</Etiqueta></span>
+                        <span style={{ display: 'flex', justifyContent: 'space-between' }}><span>Fotos de prendas</span><Etiqueta tono="lavanda">Cloudinary</Etiqueta></span>
                       </div>
                     </div>
                   </div>
@@ -697,6 +763,22 @@ export default function Admin({ seccion = 'resumen' }) {
               </>
             )}
           </div>
+
+      <DetallePrenda
+        prenda={detalleActual}
+        abierto={Boolean(detallePrenda)}
+        onCerrar={() => setDetallePrenda(null)}
+        acciones={detalleActual && (
+          <>
+            <Boton variante="fantasma" onClick={() => destacar(detalleActual.id)}>
+              {detalleActual.destacada ? 'Quitar destacado' : 'Destacar'}
+            </Boton>
+            <Boton variante="fantasma" onClick={() => alternarDisponible(detalleActual.id)}>
+              {detalleActual.disponible ? 'Pausar' : 'Activar'}
+            </Boton>
+          </>
+        )}
+      />
     </PanelShell>
   )
 }

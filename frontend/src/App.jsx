@@ -20,17 +20,8 @@ import Admin from './pages/Admin.jsx'
 import NoEncontrada from './pages/NoEncontrada.jsx'
 
 /** Puerta de entrada para las zonas que necesitan sesión; al entrar vuelve a donde estabas. */
-function Acceso({ titulo, texto, volver = '', modoAdmin = false }) {
-  const { entrar, avisar } = useStore()
+function Acceso({ titulo, texto, volver = '' }) {
   const destino = volver ? `/entrar?volver=${encodeURIComponent(volver)}` : '/entrar'
-  const entrarDemo = async () => {
-    try {
-      const cuenta = await entrar(modoAdmin ? 'admin@hilocircular.co' : 'valentina@hilocircular.co', 'demo123')
-      navigate(cuenta.rol === 'admin' ? '/admin' : destinoVolver('/panel'))
-    } catch (error) {
-      avisar(error.message || 'No pudimos iniciar la sesión de prueba.', 'aviso')
-    }
-  }
   return (
     <Seccion tono="claro">
       <div className="contenedor">
@@ -39,11 +30,7 @@ function Acceso({ titulo, texto, volver = '', modoAdmin = false }) {
           titulo={titulo}
           texto={texto}
           accion={<Boton to={destino} tamano="lg">Iniciar sesión</Boton>}
-          secundario={
-            <Boton variante="fantasma" onClick={entrarDemo}>
-              {modoAdmin ? 'Entrar como administrador (demo)' : 'Entrar con una cuenta de prueba'}
-            </Boton>
-          }
+          secundario={<Boton to="/registro" variante="fantasma">Crear una cuenta</Boton>}
         />
       </div>
     </Seccion>
@@ -123,7 +110,7 @@ function Rutas() {
       if (esAdmin) return <Redirigir a="/admin" />
       return <Panel key={clave} seccion={query.get('seccion') ?? 'resumen'} />
     case 'admin':
-      if (!usuario) return <Acceso key={clave} modoAdmin volver="/admin" titulo="Zona de administración" texto="Este espacio es solo para el equipo de Hilo Circular: moderación, envíos y métricas de la comunidad." />
+      if (!usuario) return        <Acceso key={clave} volver="/admin" titulo="Zona de administración" texto="Este espacio es solo para el equipo de Hilo Circular: moderación, envíos y métricas de la comunidad." />
       if (!esAdmin) return <SinPermiso key={clave} />
       return <Admin key={clave} seccion={segundo ?? 'resumen'} />
     default:

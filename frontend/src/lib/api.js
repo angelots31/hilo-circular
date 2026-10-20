@@ -53,6 +53,8 @@ export const api = {
   login: (email, clave) => pedir('/api/auth/login', { method: 'POST', body: { email, clave }, auth: false }),
 
   actualizarPerfil: (cuerpo) => pedir('/api/usuarios/me', { method: 'PUT', body: cuerpo }),
+  solicitarVerificacion: () => pedir('/api/usuarios/me/verificacion', { method: 'POST' }),
+  suscribir: (email) => pedir('/api/suscripciones', { method: 'POST', body: { email }, auth: false }),
   suspenderUsuario: (id) => pedir(`/api/usuarios/${id}/estado`, { method: 'PATCH' }),
   verificarUsuario: (id) => pedir(`/api/usuarios/${id}/verificado`, { method: 'PATCH' }),
 
@@ -66,6 +68,9 @@ export const api = {
 
   solicitar: (cuerpo) => pedir('/api/intercambios', { method: 'POST', body: cuerpo }),
   responderSolicitud: (id, estado) => pedir(`/api/intercambios/${id}/estado`, { method: 'PATCH', body: { estado } }),
+  mensajes: (id) => pedir(`/api/intercambios/${id}/mensajes`),
+  enviarMensaje: (id, texto) => pedir(`/api/intercambios/${id}/mensajes`, { method: 'POST', body: { texto } }),
+  marcarNotificacionesLeidas: () => pedir('/api/notificaciones/leidas', { method: 'PATCH' }),
 
   publicarResena: (cuerpo) => pedir('/api/resenas', { method: 'POST', body: cuerpo }),
   responderResena: (id, respuesta) => pedir(`/api/resenas/${id}/respuesta`, { method: 'PUT', body: { respuesta } }),

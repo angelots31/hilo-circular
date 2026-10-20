@@ -13,7 +13,9 @@
     "demo": "node scripts/demo-mem.js",
     "demo:watch": "node --watch scripts/demo-mem.js",
     "db:setup": "node scripts/setup-db.js",
-    "db:reset": "node scripts/setup-db.js --reset",
+    "db:setup:demo": "node scripts/setup-db.js --demo",
+    "db:limpiar": "node scripts/limpiar-datos.js",
+    "admin:crear": "node scripts/crear-admin.js",
     "test": "node --test"
   },
   "dependencies": {

@@ -161,7 +161,7 @@ export default function Subir() {
 
             {paso === 1 && (
               <div className="form-rejilla">
-                <Campo etiqueta="Fotos de la prenda" ayuda="Hasta 6 imágenes. La primera será la portada del catálogo." id="fotos">
+                <Campo etiqueta="Fotos de la prenda" ayuda="Hasta 6 imágenes. La primera será la portada del catálogo y todas serán visibles para la persona con la que intercambies." id="fotos">
                   <div
                     className={`soltar ${encima ? 'encima' : ''}`}
                     onDragOver={(e) => {

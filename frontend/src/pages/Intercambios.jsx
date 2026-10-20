@@ -1,27 +1,32 @@
-import { useMemo, useState } from 'react'
-import Garment from '../components/Garment.jsx'
+import { useEffect, useMemo, useState } from 'react'
+import ChatIntercambio from '../components/ChatIntercambio.jsx'
+import DetallePrenda from '../components/DetallePrenda.jsx'
 import Mascot from '../components/Mascot.jsx'
+import PrendaMini from '../components/PrendaMini.jsx'
 import {
-  Aparece, Area, Avatar, Boton, Dato, Entrada, EstadoVacio, Etiqueta,
-  Modal, Pestanas, Seccion, TituloSeccion,
+  Aparece, Avatar, Boton, Dato, EstadoVacio, Etiqueta, Pestanas, Seccion, TituloSeccion,
 } from '../components/ui.jsx'
-import { navigate } from '../lib/router.jsx'
+import { navigate, useRoute } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
-import { mensajes as MENSAJES } from '../lib/seed.js'
 
-const TONO = { Pendiente: 'ambar', Aceptado: 'verde', Rechazado: 'rojo', Completado: 'lavanda' }
+const TONO = { Pendiente: 'ambar', Aceptado: 'verde', Rechazado: 'rojo', Completado: 'lavanda', Cancelado: 'neutro' }
 
 export default function Intercambios() {
-  const { intercambios, usuario, buscarPrenda, buscarUsuario, responderSolicitud, crearPedido, fecha, avisar } = useStore()
+  const {
+    intercambios, prendas, usuario, buscarPrenda, buscarUsuario, responderSolicitud, fecha,
+  } = useStore()
+  const { query } = useRoute()
   const [pestana, setPestana] = useState('recibidas')
   const [charla, setCharla] = useState(null)
-  const [nuevoMensaje, setNuevoMensaje] = useState('')
-  const [conversacion, setConversacion] = useState(MENSAJES)
+  const [detalle, setDetalle] = useState(null)
 
-  const recibidas = intercambios.filter((x) => x.receptorId === usuario.id)
-  const enviadas = intercambios.filter((x) => x.solicitanteId === usuario.id)
-  const completadas = intercambios.filter(
-    (x) => x.estado === 'Completado' && (x.receptorId === usuario.id || x.solicitanteId === usuario.id),
+  const recibidas = useMemo(() => intercambios.filter((x) => x.receptorId === usuario.id), [intercambios, usuario.id])
+  const enviadas = useMemo(() => intercambios.filter((x) => x.solicitanteId === usuario.id), [intercambios, usuario.id])
+  const completadas = useMemo(
+    () => intercambios.filter(
+      (x) => x.estado === 'Completado' && (x.receptorId === usuario.id || x.solicitanteId === usuario.id),
+    ),
+    [intercambios, usuario.id],
   )
 
   const lista = useMemo(() => {
@@ -30,27 +35,23 @@ export default function Intercambios() {
     return completadas
   }, [pestana, recibidas, enviadas, completadas])
 
-  const aceptar = (x) => {
-    responderSolicitud(x.id, 'Aceptado')
-    const prenda = buscarPrenda(x.prendaId)
-    crearPedido({
-      prendaId: x.prendaId,
-      usuarioId: x.receptorId,
-      receptorId: x.solicitanteId,
-      metodo: 'Domicilio',
-      ciudad: prenda?.ciudad,
-      costo: 11900,
-      transportadora: 'Servientrega',
-    })
-  }
+  // Una notificación puede abrir directamente la conversación de un intercambio.
+  const chatId = query.get('chat')
+  useEffect(() => {
+    if (!chatId) return
+    const encontrado = intercambios.find((x) => x.id === chatId)
+    if (encontrado) setCharla(encontrado)
+  }, [chatId, intercambios])
 
-  const enviarMensaje = () => {
-    if (!nuevoMensaje.trim()) return
-    setConversacion((c) => [...c, { id: `m${c.length + 1}`, de: usuario.id, para: charla, texto: nuevoMensaje, hora: 'ahora' }])
-    setNuevoMensaje('')
+  const cerrarChat = () => {
+    setCharla(null)
+    if (chatId) navigate('/intercambios', { replace: true })
   }
 
   const totalPendientes = recibidas.filter((x) => x.estado === 'Pendiente').length
+  const reputacion = Number(usuario.reputacion ?? 0)
+  const charlaActual = charla ? intercambios.find((x) => x.id === charla.id) ?? charla : null
+  const detalleActual = detalle ? prendas.find((p) => p.id === detalle.id) ?? detalle : null
 
   return (
     <>
@@ -60,15 +61,15 @@ export default function Intercambios() {
             nivel={1}
             ceja="Mis intercambios"
             titulo="Solicitudes que llegan y que enviaste"
-            texto="Acepta una propuesta y el sistema habilita el envío. Si algo cambia de planes, puedes cancelar antes de enviar."
+            texto="Acepta una propuesta y coordina el envío o el punto de encuentro. Toda la conversación queda en el chat privado del intercambio."
             accion={<Boton to="/catalogo">Buscar más prendas</Boton>}
           />
 
           <div className="datos-rejilla">
-            <Dato etiqueta="Solicitudes recibidas" valor={recibidas.length} nota={`${totalPendientes} por responder`} icono="📥" />
-            <Dato etiqueta="Solicitudes enviadas" valor={enviadas.length} nota="Esperando respuesta" icono="📤" />
-            <Dato etiqueta="Intercambios completados" valor={completadas.length} nota="Historial verificado" icono="✓" />
-            <Dato etiqueta="Reputación" valor={usuario.reputacion.toFixed(1).replace('.', ',')} nota="Según las reseñas" icono="★" />
+            <Dato etiqueta="Solicitudes recibidas" valor={recibidas.length} nota={`${totalPendientes} por responder`} />
+            <Dato etiqueta="Solicitudes enviadas" valor={enviadas.length} nota="Esperando respuesta" />
+            <Dato etiqueta="Intercambios completados" valor={completadas.length} nota="Historial verificado" />
+            <Dato etiqueta="Reputación" valor={reputacion.toFixed(1).replace('.', ',')} nota="Según las reseñas" />
           </div>
 
           <Pestanas
@@ -106,65 +107,70 @@ export default function Intercambios() {
                 const soyReceptor = x.receptorId === usuario.id
                 return (
                   <Aparece key={x.id} retraso={(i % 3) * 70}>
-                    <article className="intercambio">
-                      <div>
-                        <p style={{ fontSize: '0.78rem', opacity: 0.65, marginBottom: '0.35rem' }}>
+                    <article className="intercambio intercambio-publico">
+                      <div className="intercambio-contacto">
+                        <p className="intercambio-tipo">
                           {soyReceptor ? 'Solicitud recibida' : 'Solicitud enviada'} · {fecha(x.fecha)}
                         </p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                          <Avatar nombre={otra?.nombre ?? ''} tamano={40} />
+                        <div className="intercambio-persona">
+                          <Avatar nombre={otra?.nombre ?? ''} tamano={42} />
                           <div>
-                            <b style={{ fontFamily: 'var(--fuente-titulo)' }}>{otra?.nombre}</b>
-                            <p style={{ fontSize: '0.8rem', opacity: 0.7 }}>{otra?.ciudad} · {otra?.intercambios} intercambios</p>
+                            <b>{otra?.nombre ?? 'Miembro de la comunidad'}</b>
+                            <p>{otra?.ciudad} · {otra?.intercambios ?? 0} intercambios</p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="intercambio-prendas">
-                        <div style={{ textAlign: 'center' }}>
-                          <Garment tipo={ofrece?.tipo} paleta={ofrece?.paleta} alt="" />
-                          <small style={{ fontSize: '0.72rem', opacity: 0.7 }}>Ofrece</small>
+                      <div className="intercambio-prendas-contexto">
+                        <div className="intercambio-prenda">
+                          <PrendaMini prenda={ofrece} onClick={() => setDetalle(ofrece)} />
+                          <small>{ofrece?.titulo ?? 'Prenda ofrecida'}</small>
+                          <em>{soyReceptor ? 'Ofrece' : 'Ofreces'}</em>
                         </div>
                         <span className="intercambio-flecha" aria-hidden="true">⇄</span>
-                        <div style={{ textAlign: 'center' }}>
-                          <Garment tipo={pide?.tipo} paleta={pide?.paleta} alt="" />
-                          <small style={{ fontSize: '0.72rem', opacity: 0.7 }}>Quiere</small>
+                        <div className="intercambio-prenda">
+                          <PrendaMini prenda={pide} onClick={() => setDetalle(pide)} />
+                          <small>{pide?.titulo ?? 'Prenda solicitada'}</small>
+                          <em>{soyReceptor ? 'Quiere' : 'Solicitas'}</em>
                         </div>
                       </div>
 
-                      <div>
-                        <p style={{ fontWeight: 600, fontSize: '0.92rem' }}>{ofrece?.titulo}</p>
-                        <p style={{ fontSize: '0.82rem', opacity: 0.72 }}>por {pide?.titulo}</p>
-                        <div className="chips" style={{ marginTop: '0.5rem' }}>
-                          <Etiqueta tono={TONO[x.estado]}>{x.estado}</Etiqueta>
-                          <Etiqueta tono="neutro">Valores de referencia: {ofrece?.valor} / {pide?.valor}</Etiqueta>
+                      <div className="intercambio-resumen">
+                        <div className="chips">
+                          <Etiqueta tono={TONO[x.estado] ?? 'neutro'}>{x.estado}</Etiqueta>
+                          <Etiqueta tono="neutro">Ref. {ofrece?.valor ?? '—'} / {pide?.valor ?? '—'}</Etiqueta>
                         </div>
+                        <p>{ofrece?.titulo ?? 'Prenda ofrecida'} por <b>{pide?.titulo ?? 'prenda solicitada'}</b></p>
                       </div>
 
                       <div className="intercambio-acciones">
-                        <Boton tamano="sm" variante="fantasma" onClick={() => setCharla(otra?.id)}>Mensajes</Boton>
+                        <Boton tamano="sm" variante="fantasma" onClick={() => setCharla(x)}>
+                          Abrir chat
+                        </Boton>
+                        <Boton tamano="sm" variante="texto" onClick={() => setDetalle(pide ?? ofrece)}>
+                          Ver prendas
+                        </Boton>
                         {soyReceptor && x.estado === 'Pendiente' && (
                           <>
-                            <Boton tamano="sm" onClick={() => aceptar(x)}>Aceptar</Boton>
+                            <Boton tamano="sm" onClick={() => responderSolicitud(x.id, 'Aceptado')}>Aceptar</Boton>
                             <Boton tamano="sm" variante="fantasma" onClick={() => responderSolicitud(x.id, 'Rechazado')}>Rechazar</Boton>
                           </>
                         )}
                         {!soyReceptor && x.estado === 'Pendiente' && (
-                          <Boton tamano="sm" variante="fantasma" onClick={() => responderSolicitud(x.id, 'Rechazado')}>Cancelar</Boton>
+                          <Boton tamano="sm" variante="fantasma" onClick={() => responderSolicitud(x.id, 'Cancelado')}>Cancelar</Boton>
                         )}
                         {x.estado === 'Aceptado' && (
-                          <Boton tamano="sm" onClick={() => navigate(`/domicilio?intercambio=${x.id}`)}>Coordinar domicilio</Boton>
+                          <>
+                            <Boton tamano="sm" onClick={() => navigate(`/domicilio?intercambio=${x.id}`)}>Coordinar domicilio</Boton>
+                            <Boton tamano="sm" variante="fantasma" onClick={() => responderSolicitud(x.id, 'Completado')}>Marcar completado</Boton>
+                          </>
                         )}
                         {x.estado === 'Completado' && (
                           <Boton tamano="sm" variante="texto" onClick={() => navigate('/resenas')}>Dejar reseña</Boton>
                         )}
                       </div>
 
-                      {x.mensaje && (
-                        <p style={{ gridColumn: '1 / -1', fontSize: '0.88rem', opacity: 0.82, borderTop: '1px dashed var(--línea)', paddingTop: '0.8rem' }}>
-                          «{x.mensaje}»
-                        </p>
-                      )}
+                      {x.mensaje && <p className="intercambio-mensaje">«{x.mensaje}»</p>}
                     </article>
                   </Aparece>
                 )
@@ -180,13 +186,13 @@ export default function Intercambios() {
             <div>
               <h2 style={{ fontSize: 'clamp(1.8rem, 3.6vw, 2.6rem)' }}>Buena comunicación, mejores intercambios</h2>
               <p style={{ marginTop: '1rem', maxWidth: '34rem', opacity: 0.8 }}>
-                Responde en menos de 24 horas: las solicitudes sin respuesta se archivan automáticamente a los cinco días.
-                Si el estado de la prenda cambió, avísalo antes de enviar y ofrece una alternativa.
+                Usa el chat privado del intercambio para confirmar el estado de la prenda, acordar el punto de
+                encuentro y coordinar la entrega. No compartas teléfonos ni direcciones por fuera de la plataforma.
               </p>
               <div className="chips" style={{ marginTop: '1.2rem' }}>
-                <Etiqueta tono="claro">Chat dentro de la plataforma</Etiqueta>
-                <Etiqueta tono="claro">Cancelación sin penalización</Etiqueta>
+                <Etiqueta tono="claro">Chat privado</Etiqueta>
                 <Etiqueta tono="claro">Historial de cada acuerdo</Etiqueta>
+                <Etiqueta tono="claro">Cancelación sin penalización</Etiqueta>
               </div>
             </div>
             <div className="mascota-panel" style={{ display: 'grid', placeItems: 'center' }}>
@@ -196,37 +202,17 @@ export default function Intercambios() {
         </div>
       </Seccion>
 
-      <Modal
-        abierto={!!charla}
-        onCerrar={() => setCharla(null)}
-        titulo="Conversación del intercambio"
-        descripcion="Por seguridad, no compartas teléfonos ni direcciones por fuera de la plataforma."
-      >
-        <div className="charla">
-          {conversacion.map((m) => (
-            <div key={m.id} className={`mensaje ${m.de === usuario.id ? 'mio' : ''}`}>
-              {m.texto}
-              <small>{buscarUsuario(m.de)?.nombre ?? '—'} · {m.hora}</small>
-            </div>
-          ))}
-        </div>
-        <div className="charla-enviar">
-          <Entrada
-            value={nuevoMensaje}
-            onChange={(e) => setNuevoMensaje(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && enviarMensaje()}
-            placeholder="Escribe un mensaje…"
-            aria-label="Mensaje"
-          />
-          <Boton onClick={enviarMensaje}>Enviar</Boton>
-        </div>
-        <Area placeholder="Adjunta una nota sobre el empaque o el estado (opcional)" rows={2} />
-        <div className="chips">
-          <button className="chip" onClick={() => avisar('Propuesta de punto de encuentro enviada.', 'ok')}>Proponer punto de encuentro</button>
-          <button className="chip" onClick={() => avisar('Recordatorio enviado a la otra persona.', 'info')}>Recordar respuesta</button>
-          <button className="chip" onClick={() => avisar('Solicitud escalada al equipo de soporte.', 'aviso')}>Escalar a soporte</button>
-        </div>
-      </Modal>
+      <ChatIntercambio
+        intercambio={charlaActual}
+        abierto={Boolean(charla)}
+        onCerrar={cerrarChat}
+        onVerPrenda={(prenda) => prenda && setDetalle(prenda)}
+      />
+      <DetallePrenda
+        prenda={detalleActual}
+        abierto={Boolean(detalle)}
+        onCerrar={() => setDetalle(null)}
+      />
     </>
   )
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Icono from './Iconos.jsx'
 import { Avatar } from './ui.jsx'
 import { href, navigate } from '../lib/router.jsx'
@@ -13,30 +13,64 @@ export default function PanelShell({
   insignias = {}, extras = [], usuarioNombre, usuarioId, rol, children, mostrarEncabezado = true,
   tituloSeccion = '', textoSeccion = '', notificaciones = [],
 }) {
-  const { salir } = useStore()
+  const { salir, marcarNotificacionesLeidas } = useStore()
   const [abierto, setAbierto] = useState(false)
+  const [colapsado, setColapsado] = useState(() => {
+    try { return localStorage.getItem('hilo-panel-colapsado') === '1' } catch { return false }
+  })
+  const alternarColapso = () => {
+    setColapsado((valor) => {
+      const nuevo = !valor
+      try { localStorage.setItem('hilo-panel-colapsado', nuevo ? '1' : '0') } catch { /* Sin almacenamiento, el panel sigue funcionando. */ }
+      return nuevo
+    })
+  }
   const [avisosAbiertos, setAvisosAbiertos] = useState(false)
+  const campanaRef = useRef(null)
   const [leidas, setLeidas] = useState(() => {
     try { return JSON.parse(localStorage.getItem(`hilo-notificaciones-leidas-${usuarioId}`) || '[]') } catch { return [] }
   })
+  useEffect(() => {
+    try { setLeidas(JSON.parse(localStorage.getItem(`hilo-notificaciones-leidas-${usuarioId}`) || '[]')) } catch { setLeidas([]) }
+  }, [usuarioId])
   const numeroSinLeer = useMemo(() => notificaciones.filter((n) => !n.leida && !leidas.includes(n.id)).length, [notificaciones, leidas])
   const marcarLeidas = () => {
     const ids = [...new Set([...leidas, ...notificaciones.map((n) => n.id)])]
     setLeidas(ids)
     try { localStorage.setItem(`hilo-notificaciones-leidas-${usuarioId}`, JSON.stringify(ids)) } catch { /* El panel sigue usable si el navegador bloquea almacenamiento. */ }
+    marcarNotificacionesLeidas?.()
   }
 
+  useEffect(() => {
+    if (!avisosAbiertos) return
+    const alTocarFuera = (evento) => {
+      if (!campanaRef.current?.contains(evento.target)) setAvisosAbiertos(false)
+    }
+    document.addEventListener('pointerdown', alTocarFuera)
+    return () => document.removeEventListener('pointerdown', alTocarFuera)
+  }, [avisosAbiertos])
+
   return (
-    <div className="panel-app">
+    <div className={`panel-app${colapsado ? ' colapsado' : ''}`}>
       <button type="button" className="panel-menu-movil" aria-label="Abrir menú" aria-expanded={abierto} onClick={() => setAbierto((v) => !v)}>
         {abierto ? '×' : '☰'}
       </button>
       {abierto && <div className="panel-velo" onClick={() => setAbierto(false)} />}
 
       <aside className={`panel-lateral${abierto ? ' abierto' : ''}`} aria-label={`Menú de ${ceja}`}>
+        <button
+          type="button"
+          className="panel-colapsar"
+          onClick={alternarColapso}
+          aria-label={colapsado ? 'Expandir barra lateral' : 'Contraer barra lateral'}
+          aria-pressed={colapsado}
+          title={colapsado ? 'Expandir menú' : 'Contraer menú'}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={colapsado ? 'm9 5 7 7-7 7' : 'm15 5-7 7 7 7'} fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
         <a className="panel-marca" href={href('/')} title="Ir al sitio">
           <img className="panel-marca-mascota" src="/icono-redondo.png" alt="" width="38" height="38" decoding="async" />
-          <span>
+          <span className="panel-marca-texto">
             <b>Hilo Circular</b>
             <small>{ceja}</small>
           </span>
@@ -49,18 +83,19 @@ export default function PanelShell({
               href={href(ceja.toLowerCase().includes('admin') ? `/admin/${s.valor}` : `/panel?seccion=${s.valor}`)}
               className={vista === s.valor ? 'activo' : ''}
               aria-current={vista === s.valor ? 'page' : undefined}
+              title={s.texto}
               onClick={() => setAbierto(false)}
             >
               <span className="panel-nav-icono" aria-hidden="true"><Icono nombre={s.icono} /></span>
-              <span>{s.texto}</span>
+              <span className="panel-nav-texto">{s.texto}</span>
               {insignias[s.valor] > 0 && <em className="panel-insignia">{insignias[s.valor]}</em>}
             </a>
           ))}
           {extras.length > 0 && <hr />}
           {extras.map((e) => (
-            <button key={e.texto} type="button" onClick={e.onClick}>
+            <button key={e.texto} type="button" onClick={e.onClick} title={e.texto}>
               <span className="panel-nav-icono" aria-hidden="true"><Icono nombre={e.icono} /></span>
-              <span>{e.texto}</span>
+              <span className="panel-nav-texto">{e.texto}</span>
             </button>
           ))}
         </nav>
@@ -73,11 +108,13 @@ export default function PanelShell({
               <small>{rol}</small>
             </span>
           </div>
-          <a className="panel-enlace panel-volver-sitio" href={href('/')} onClick={() => setAbierto(false)}>
-            <span className="panel-nav-icono" aria-hidden="true"><Icono nombre="volver" /></span> Volver al sitio
+          <a className="panel-enlace panel-volver-sitio" href={href('/')} title="Volver al sitio" onClick={() => setAbierto(false)}>
+            <span className="panel-nav-icono" aria-hidden="true"><Icono nombre="volver" /></span>
+            <span className="panel-nav-texto">Volver al sitio</span>
           </a>
-          <button type="button" className="panel-enlace" onClick={() => { salir(); navigate('/') }}>
-            <span className="panel-nav-icono" aria-hidden="true"><Icono nombre="salir" /></span> Cerrar sesión
+          <button type="button" className="panel-enlace" title="Cerrar sesión" onClick={() => { salir(); navigate('/') }}>
+            <span className="panel-nav-icono" aria-hidden="true"><Icono nombre="salir" /></span>
+            <span className="panel-nav-texto">Cerrar sesión</span>
           </button>
         </div>
       </aside>
@@ -90,7 +127,7 @@ export default function PanelShell({
             {(mostrarEncabezado ? texto : textoSeccion) && <p>{mostrarEncabezado ? texto : textoSeccion}</p>}
           </div>
           <div className="panel-herramientas">
-            <div className="panel-notificaciones-wrap">
+            <div className="panel-notificaciones-wrap" ref={campanaRef}>
               <button
                 type="button"
                 className="panel-campana"

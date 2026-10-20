@@ -9,10 +9,11 @@ export function vistasDe(prenda) {
       .filter((f) => typeof f === 'string' && /^(blob:|data:|https?:|\/)/.test(f))
       .map((url, i) => ({ clave: url, tipo: 'foto', url, etiqueta: i === 0 ? 'Portada' : `Foto ${i + 1}` }))
   }
+  const paleta = prenda.paleta?.length ? prenda.paleta : ['#6872aa', '#e5c4c6']
   return [
-    { clave: 'frente', tipo: 'arte', paleta: prenda.paleta, etiqueta: 'Frente' },
-    { clave: 'reverso', tipo: 'arte', paleta: [...prenda.paleta].reverse(), etiqueta: 'Reverso', espejo: true },
-    { clave: 'detalle', tipo: 'arte', paleta: prenda.paleta, etiqueta: 'Detalle', zoom: true },
+    { clave: 'frente', tipo: 'arte', paleta, etiqueta: 'Frente' },
+    { clave: 'reverso', tipo: 'arte', paleta: [...paleta].reverse(), etiqueta: 'Reverso', espejo: true },
+    { clave: 'detalle', tipo: 'arte', paleta, etiqueta: 'Detalle', zoom: true },
   ]
 }
 
