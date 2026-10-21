@@ -9,8 +9,9 @@ const router = Router()
  * GET /api/uploads/firma
  * Devuelve los parámetros firmados para que el navegador suba la imagen
  * directamente a Cloudinary (sin pasar el archivo por el backend).
+ * Con ?recurso=audio firma la subida de audio (Cloudinary lo recibe como video).
  */
-router.get('/firma', authRequerida, asincrono(async (_req, res) => {
+router.get('/firma', authRequerida, asincrono(async (req, res) => {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME
   const apiKey = process.env.CLOUDINARY_API_KEY
   const apiSecret = process.env.CLOUDINARY_API_SECRET
@@ -22,13 +23,16 @@ router.get('/firma', authRequerida, asincrono(async (_req, res) => {
   const aFirmar = `folder=${folder}&timestamp=${timestamp}${apiSecret}`
   const signature = crypto.createHash('sha1').update(aFirmar).digest('hex')
 
+  // En Cloudinary el audio viaja como resource type «video».
+  const recurso = req.query.recurso === 'audio' ? 'video' : 'image'
+
   res.json({
     cloudName,
     apiKey,
     timestamp,
     folder,
     signature,
-    uploadUrl: `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    uploadUrl: `https://api.cloudinary.com/v1_1/${cloudName}/${recurso}/upload`,
   })
 }))
 

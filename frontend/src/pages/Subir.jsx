@@ -4,7 +4,7 @@ import Mascot from '../components/Mascot.jsx'
 import { Aparece, Area, Boton, Campo, Entrada, Etiqueta, Pasos, Seccion, Selector, TituloSeccion } from '../components/ui.jsx'
 import { navigate } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
-import { subirImagen } from '../lib/api.js'
+import { subirAudio, subirImagen } from '../lib/api.js'
 import { BARRIOS, CATEGORIAS, CIUDAD, ESTADOS, TALLAS } from '../lib/seed.js'
 
 const COLORES = [
@@ -20,10 +20,13 @@ const COLORES = [
 
 const PASOS = ['Datos de la prenda', 'Fotos y estado', 'Intercambio y envío', 'Revisión final']
 
+const LIMITE_AUDIO_MB = 15
+
 export default function Subir() {
   const { usuario, publicarPrenda, avisar, precio } = useStore()
   const [paso, setPaso] = useState(0)
   const [fotos, setFotos] = useState([])
+  const [audio, setAudio] = useState(null)
   const [subiendo, setSubiendo] = useState(false)
   const [encima, setEncima] = useState(false)
   const entradaArchivos = useRef(null)
@@ -57,6 +60,19 @@ export default function Subir() {
     if (nuevas.length) setFotos((f) => [...f, ...nuevas])
   }
 
+  const elegirAudio = (archivo) => {
+    if (!archivo) return
+    if (!archivo.type.startsWith('audio/')) return avisar('El archivo debe ser un audio (MP3, M4A, WAV…).', 'aviso')
+    if (archivo.size > LIMITE_AUDIO_MB * 1024 * 1024) return avisar(`El audio supera los ${LIMITE_AUDIO_MB} MB. Graba uno más corto.`, 'aviso')
+    if (audio?.url) URL.revokeObjectURL(audio.url)
+    setAudio({ nombre: archivo.name, archivo, url: URL.createObjectURL(archivo) })
+  }
+
+  const quitarAudio = () => {
+    if (audio?.url) URL.revokeObjectURL(audio.url)
+    setAudio(null)
+  }
+
   const publicar = async () => {
     if (datos.titulo.trim().length < 6) {
       setPaso(0)
@@ -68,9 +84,11 @@ export default function Subir() {
     }
     setSubiendo(true)
     try {
-      // Las fotos se suben a Cloudinary y guardamos sus URL en la base de datos.
+      // Las fotos y el audio se suben a Cloudinary y guardamos sus URL en la base de datos.
       const urls = []
       for (const f of fotos) urls.push(await subirImagen(f.archivo))
+      // El audio es opcional: solo se sube si la persona eligió uno.
+      const urlAudio = audio ? await subirAudio(audio.archivo) : null
       const ok = await publicarPrenda({
         ...datos,
         valor: Number(datos.valor),
@@ -78,6 +96,7 @@ export default function Subir() {
         ciudad: CIUDAD,
         paleta: paletaArte,
         fotos: urls,
+        audio: urlAudio,
         disponible: true,
       })
       if (ok) navigate('/panel?seccion=prendas')
@@ -221,6 +240,33 @@ export default function Subir() {
                   </p>
                 )}
 
+                <Campo etiqueta="Audio explicativo (opcional)" ayuda={`Graba un audio contando detalles de la prenda: cómo la usaste, arreglos o lo que destaque. Máximo ${LIMITE_AUDIO_MB} MB.`} id="audio-subir">
+                  {audio ? (
+                    <div className="audio-carga">
+                      <audio controls src={audio.url} />
+                      <div className="audio-carga-pie">
+                        <small>{audio.nombre}</small>
+                        <button type="button" className="chip" onClick={quitarAudio}>Quitar audio</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="soltar soltar-audio" data-cursor="subir audio">
+                      <b>🎙️ Añade un audio con los detalles</b>
+                      <small>haz clic para elegirlo desde tu equipo · MP3, M4A o WAV · completamente opcional</small>
+                      <input
+                        id="audio-subir"
+                        type="file"
+                        accept="audio/*"
+                        onChange={(e) => {
+                          elegirAudio(e.target.files?.[0])
+                          // Permite volver a elegir el mismo archivo tras quitarlo.
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                  )}
+                </Campo>
+
                 <div className="form-columnas">
                   <Campo etiqueta="Estado real" id="estado-subir">
                     <Selector id="estado-subir" value={datos.estado} onChange={(e) => actualizar({ estado: e.target.value })}>
@@ -288,7 +334,7 @@ export default function Subir() {
                     <Etiqueta tono="neutro">{datos.barrio}</Etiqueta>
                     </div>
                     <p style={{ fontSize: '0.85rem', opacity: 0.72 }}>
-                      {fotos.length} {fotos.length === 1 ? 'foto cargada' : 'fotos cargadas'} · método {datos.metodo}
+                      {fotos.length} {fotos.length === 1 ? 'foto cargada' : 'fotos cargadas'} · método {datos.metodo}{audio ? ' · con audio explicativo' : ''}
                     </p>
                   </div>
                 </div>
@@ -311,7 +357,7 @@ export default function Subir() {
               {paso < PASOS.length - 1 ? (
                 <Boton onClick={() => setPaso((p) => p + 1)}>Continuar</Boton>
               ) : (
-                <Boton onClick={publicar} disabled={subiendo}>{subiendo ? 'Subiendo fotos…' : 'Publicar prenda'}</Boton>
+                <Boton onClick={publicar} disabled={subiendo}>{subiendo ? (audio ? 'Subiendo fotos y audio…' : 'Subiendo fotos…') : 'Publicar prenda'}</Boton>
               )}
             </div>
           </div>
@@ -324,6 +370,7 @@ export default function Subir() {
                   <div className="prenda-etiquetas">
                     <Etiqueta tono="claro">Vista previa</Etiqueta>
                     {datos.destacada && <Etiqueta tono="destacada">Candidata</Etiqueta>}
+                    {audio && <Etiqueta tono="lavanda">🎙 Con audio</Etiqueta>}
                   </div>
                 </div>
                 <div className="prenda-cuerpo">

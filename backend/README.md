@@ -120,7 +120,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 | POST/PATCH | `/api/pedidos`, `/api/pedidos/:id/estado` | Envíos y seguimiento |
 | POST/PUT/PATCH | `/api/resenas`, `/api/resenas/:id/...` | Reseñas (solo tras un intercambio aceptado), respuestas y reportes |
 | PATCH | `/api/reportes/:id/estado` | Moderación (admin) |
-| GET | `/api/uploads/firma` | Firma para subir la imagen a Cloudinary |
+| GET | `/api/uploads/firma` | Firma para subir la imagen a Cloudinary (`?recurso=audio` para audio explicativo) |
 | POST | `/api/prendas/:id/vista` | Suma una visita |
 
 ---

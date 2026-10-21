@@ -81,12 +81,12 @@ export const api = {
   moverPedido: (id, estado) => pedir(`/api/pedidos/${id}/estado`, { method: 'PATCH', body: { estado } }),
   resolverReporte: (id, estado) => pedir(`/api/reportes/${id}/estado`, { method: 'PATCH', body: { estado } }),
 
-  firmaCloudinary: () => pedir('/api/uploads/firma'),
+  firmaCloudinary: (recurso) => pedir(`/api/uploads/firma${recurso ? `?recurso=${encodeURIComponent(recurso)}` : ''}`),
 }
 
-/** Sube una imagen a Cloudinary usando la firma del backend y devuelve su URL. */
-export async function subirImagen(archivo) {
-  const firma = await api.firmaCloudinary()
+/** Sube un archivo a Cloudinary usando la firma del backend y devuelve su URL. */
+async function subirANube(archivo, { recurso, mensajeError }) {
+  const firma = await api.firmaCloudinary(recurso)
   const datos = new FormData()
   datos.append('file', archivo)
   datos.append('api_key', firma.apiKey)
@@ -95,7 +95,15 @@ export async function subirImagen(archivo) {
   datos.append('signature', firma.signature)
 
   const res = await fetch(firma.uploadUrl, { method: 'POST', body: datos })
-  if (!res.ok) throw new ApiError('No pudimos subir la imagen a la nube.', res.status)
+  if (!res.ok) throw new ApiError(mensajeError, res.status)
   const subida = await res.json()
   return subida.secure_url
 }
+
+/** Sube una imagen a Cloudinary usando la firma del backend y devuelve su URL. */
+export const subirImagen = (archivo) =>
+  subirANube(archivo, { recurso: 'image', mensajeError: 'No pudimos subir la imagen a la nube.' })
+
+/** Sube un audio explicativo a Cloudinary y devuelve su URL. */
+export const subirAudio = (archivo) =>
+  subirANube(archivo, { recurso: 'audio', mensajeError: 'No pudimos subir el audio a la nube.' })

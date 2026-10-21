@@ -12,7 +12,7 @@ import {
 } from '../components/ui.jsx'
 import { navigate } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
-import { subirImagen } from '../lib/api.js'
+import { subirAudio, subirImagen } from '../lib/api.js'
 import { BARRIOS, CATEGORIAS, CIUDAD, ESTADOS, TALLAS } from '../lib/seed.js'
 import { descargarJSON } from '../lib/descargas.js'
 
@@ -27,6 +27,8 @@ const SECCIONES = [
 ]
 
 const ESTADOS_CERRADOS = new Set(['Rechazado', 'Completado', 'Cancelado'])
+
+const LIMITE_AUDIO_MB = 15
 
 export default function Panel({ seccion = 'resumen' }) {
   const {
@@ -49,6 +51,7 @@ export default function Panel({ seccion = 'resumen' }) {
   const [filtroIntercambios, setFiltroIntercambios] = useState('todos')
   const [nuevaPrenda, setNuevaPrenda] = useState({ titulo: '', categoria: 'Camisetas', talla: 'M', estado: 'Como nuevo', color: 'Lavanda', descripcion: '', foto: '' })
   const [archivoFoto, setArchivoFoto] = useState(null)
+  const [audioPrenda, setAudioPrenda] = useState(null)
   const [subiendoPrenda, setSubiendoPrenda] = useState(false)
   const [resenaAmpliada, setResenaAmpliada] = useState('')
 
@@ -82,18 +85,21 @@ export default function Panel({ seccion = 'resumen' }) {
     setSubiendoPrenda(true)
     try {
       const fotos = archivoFoto ? [await subirImagen(archivoFoto)] : []
+      // El audio explicativo es opcional: solo se sube si la persona eligió uno.
+      const urlAudio = audioPrenda ? await subirAudio(audioPrenda.archivo) : null
       const ok = await publicarPrenda({
-        ...nuevaPrenda, tipo, marca: '', valor: 45, fotos,
+        ...nuevaPrenda, tipo, marca: '', valor: 45, fotos, audio: urlAudio,
         barrio: usuario.barrio, paleta: [colores[nuevaPrenda.color] || '#6872aa', '#5d4655'],
       })
       if (!ok) return
       setNuevaPrenda({ titulo: '', categoria: 'Camisetas', talla: 'M', estado: 'Como nuevo', color: 'Lavanda', descripcion: '', foto: '' })
       setArchivoFoto(null)
+      setAudioPrenda(null)
       setSubirAbierto(false)
       setVista('prendas')
       navigate('/panel?seccion=prendas')
     } catch (error) {
-      avisar(error.message || 'No pudimos subir la foto.', 'aviso')
+      avisar(error.message || 'No pudimos subir la foto o el audio.', 'aviso')
     } finally {
       setSubiendoPrenda(false)
     }
@@ -609,6 +615,30 @@ export default function Panel({ seccion = 'resumen' }) {
             <Entrada id="panel-prenda-foto" type="file" accept="image/*" onChange={(e) => { const archivo = e.target.files?.[0]; if (archivo) { setArchivoFoto(archivo); setNuevaPrenda({ ...nuevaPrenda, foto: URL.createObjectURL(archivo) }) } }} />
           </Campo>
           {nuevaPrenda.foto && <img className="panel-prenda-foto-preview" src={nuevaPrenda.foto} alt="Vista previa de la foto de portada" />}
+          <Campo etiqueta="Audio explicativo (opcional)" ayuda={`Un audio contando detalles de la prenda. Máximo ${LIMITE_AUDIO_MB} MB.`} id="panel-prenda-audio">
+            {audioPrenda ? (
+              <div className="audio-carga">
+                <audio controls src={audioPrenda.url} />
+                <div className="audio-carga-pie">
+                  <small>{audioPrenda.nombre}</small>
+                  <button type="button" className="chip" onClick={() => { URL.revokeObjectURL(audioPrenda.url); setAudioPrenda(null) }}>Quitar audio</button>
+                </div>
+              </div>
+            ) : (
+              <Entrada
+                id="panel-prenda-audio"
+                type="file"
+                accept="audio/*"
+                onChange={(e) => {
+                  const archivo = e.target.files?.[0]
+                  if (!archivo) return
+                  if (!archivo.type.startsWith('audio/')) return avisar('El archivo debe ser un audio (MP3, M4A o WAV).', 'aviso')
+                  if (archivo.size > LIMITE_AUDIO_MB * 1024 * 1024) return avisar(`El audio supera los ${LIMITE_AUDIO_MB} MB. Graba uno más corto.`, 'aviso')
+                  setAudioPrenda({ nombre: archivo.name, archivo, url: URL.createObjectURL(archivo) })
+                }}
+              />
+            )}
+          </Campo>
           <Campo etiqueta="Descripción" ayuda="Describe el uso, el estado y los detalles visibles (mínimo 20 caracteres)." id="panel-prenda-descripcion"><Area id="panel-prenda-descripcion" value={nuevaPrenda.descripcion} onChange={(e) => setNuevaPrenda({ ...nuevaPrenda, descripcion: e.target.value })} rows={4} required /></Campo>
         </form>
       </Modal>

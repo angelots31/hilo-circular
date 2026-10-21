@@ -48,7 +48,8 @@ CREATE TABLE prendas (
   likes        integer NOT NULL DEFAULT 0,
   creada       date NOT NULL DEFAULT CURRENT_DATE,
   fotos        text[] NOT NULL DEFAULT '{}',
-  paleta       text[] NOT NULL DEFAULT '{}'
+  paleta       text[] NOT NULL DEFAULT '{}',
+  audio        text
 );
 CREATE INDEX idx_prendas_dueno ON prendas(dueno_id);
 CREATE INDEX idx_prendas_categoria ON prendas(categoria);

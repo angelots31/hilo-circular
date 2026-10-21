@@ -102,6 +102,14 @@ export default function PrendaDetalle({ id }) {
               <h1>{prenda.titulo}</h1>
               <p style={{ opacity: 0.8 }}>{prenda.descripcion}</p>
 
+              {prenda.audio && (
+                <div className="tarjeta audio-detalle" style={{ marginTop: '1rem' }}>
+                  <b>🎙 La voz de quien la publica</b>
+                  <p style={{ fontSize: '0.85rem', opacity: 0.75 }}>Un audio con los detalles reales de la prenda.</p>
+                  <audio controls preload="none" src={prenda.audio} />
+                </div>
+              )}
+
               <div className="detalle-precio">
                 <b>Valor ref. {prenda.valor}</b>
                 <span style={{ opacity: 0.7 }}>valor de referencia para el intercambio</span>

@@ -29,11 +29,14 @@ router.post('/', authRequerida, asincrono(async (req, res) => {
   if (String(b.titulo || '').trim().length < 6) throw errorHttp(400, 'El título debe tener al menos 6 caracteres.')
   if (!b.categoria || !b.talla) throw errorHttp(400, 'Faltan la categoría o la talla.')
 
+  // Audio explicativo opcional: debe ser una URL de la nube (Cloudinary).
+  const audio = typeof b.audio === 'string' && /^https?:\/\//.test(b.audio.trim()) ? b.audio.trim() : null
+
   const { rows } = await q(
     `INSERT INTO prendas
       (titulo, tipo, categoria, talla, estado, color, marca, valor, descripcion,
-       dueno_id, ciudad, barrio, disponible, destacada, fotos, paleta)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+       dueno_id, ciudad, barrio, disponible, destacada, fotos, paleta, audio)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
      RETURNING *`,
     [
       String(b.titulo).trim(),
@@ -54,6 +57,7 @@ router.post('/', authRequerida, asincrono(async (req, res) => {
       req.usuario.rol === 'admin' && Boolean(b.destacada),
       aArray(b.fotos, LIMITE_FOTOS),
       aArray(b.paleta, 4),
+      audio,
     ],
   )
   // Si la persona pide curaduría al publicar, se crea la solicitud para el equipo.

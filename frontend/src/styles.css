@@ -863,6 +863,18 @@ button { font-family: inherit; }
 .soltar input { display: none; }
 
 .vista-previa { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: 0.8rem; }
+
+/* Carga opcional de un audio explicativo junto a la prenda. */
+.soltar-audio { padding: 1.4rem 1.2rem; cursor: pointer; }
+.soltar-audio:hover { background: rgba(104, 114, 170, 0.1); border-color: var(--lavanda); }
+.audio-carga { display: grid; gap: 0.6rem; }
+.audio-carga audio { width: 100%; }
+.audio-carga-pie { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; flex-wrap: wrap; }
+.audio-carga-pie small { font-size: 0.8rem; opacity: 0.7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Reproductor del audio explicativo en la publicación. */
+.audio-detalle { display: grid; gap: 0.5rem; }
+.audio-detalle audio { width: 100%; }
 .vista-previa figure { margin: 0; border-radius: var(--radio-sm); overflow: hidden; background: var(--niebla); position: relative; aspect-ratio: 1; }
 .vista-previa img { width: 100%; height: 100%; object-fit: cover; }
 .vista-previa button { position: absolute; top: 0.4rem; right: 0.4rem; width: 28px; height: 28px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.9); font-size: 1rem; line-height: 1; }

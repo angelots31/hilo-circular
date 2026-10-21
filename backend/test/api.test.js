@@ -91,6 +91,38 @@ test('publicar una prenda y marcarla como favorita', async () => {
   assert.ok(datos.cuerpo.favoritos.includes(id))
 })
 
+test('el audio explicativo es opcional y se guarda en la prenda', async () => {
+  const token = await entrar('valentina@hilocircular.co')
+
+  // Sin audio: la prenda se publica igual y el campo queda vacío.
+  const sinAudio = await pedir('/api/prendas', {
+    method: 'POST', token,
+    body: { titulo: 'Falda sin audio de detalle', categoria: 'Faldas', talla: 'S', descripcion: 'Publicada sin grabar ningún audio explicativo.' },
+  })
+  assert.equal(sinAudio.estado, 201)
+  assert.equal(sinAudio.cuerpo.prenda.audio, null)
+
+  // Con audio: la URL de la nube queda registrada en la prenda.
+  const conAudio = await pedir('/api/prendas', {
+    method: 'POST', token,
+    body: {
+      titulo: 'Chaqueta con audio de detalle', categoria: 'Chaquetas', talla: 'M',
+      descripcion: 'Publicada con un audio explicando sus arreglos.',
+      audio: 'https://res.cloudinary.com/demo/video/upload/hilo/audio.mp3',
+    },
+  })
+  assert.equal(conAudio.estado, 201)
+  assert.equal(conAudio.cuerpo.prenda.audio, 'https://res.cloudinary.com/demo/video/upload/hilo/audio.mp3')
+
+  // Un valor que no sea URL se ignora en lugar de romper la publicación.
+  const audioInvalido = await pedir('/api/prendas', {
+    method: 'POST', token,
+    body: { titulo: 'Prenda con audio inválido', categoria: 'Faldas', talla: 'S', descripcion: 'El audio viene corrupto desde el cliente.', audio: 'javascript:alert(1)' },
+  })
+  assert.equal(audioInvalido.estado, 201)
+  assert.equal(audioInvalido.cuerpo.prenda.audio, null)
+})
+
 test('no se puede publicar sin sesión', async () => {
   const { estado } = await pedir('/api/prendas', { method: 'POST', body: { titulo: 'sin sesión', categoria: 'Chaquetas', talla: 'M' } })
   assert.equal(estado, 401)

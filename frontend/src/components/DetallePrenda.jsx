@@ -70,6 +70,13 @@ export default function DetallePrenda({ prenda, abierto, onCerrar, onChat, accio
           <b className="detalle-prenda-valor">Valor ref. {prenda.valor}</b>
           <p className="detalle-prenda-descripcion">{prenda.descripcion || 'Sin descripción registrada.'}</p>
 
+          {prenda.audio && (
+            <div className="audio-detalle">
+              <b>🎙 Audio explicativo</b>
+              <audio controls preload="none" src={prenda.audio} />
+            </div>
+          )}
+
           <ul className="detalle-lista">
             <li><span>Marca</span><b>{prenda.marca || 'Sin marca'}</b></li>
             <li><span>Color</span><b>{prenda.color || 'Sin especificar'}</b></li>
