@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ChatIntercambio from '../components/ChatIntercambio.jsx'
+import GrabadoraAudio from '../components/GrabadoraAudio.jsx'
 import DetallePrenda from '../components/DetallePrenda.jsx'
 import PanelShell from '../components/PanelShell.jsx'
 import Mascot from '../components/Mascot.jsx'
@@ -615,7 +616,7 @@ export default function Panel({ seccion = 'resumen' }) {
             <Entrada id="panel-prenda-foto" type="file" accept="image/*" onChange={(e) => { const archivo = e.target.files?.[0]; if (archivo) { setArchivoFoto(archivo); setNuevaPrenda({ ...nuevaPrenda, foto: URL.createObjectURL(archivo) }) } }} />
           </Campo>
           {nuevaPrenda.foto && <img className="panel-prenda-foto-preview" src={nuevaPrenda.foto} alt="Vista previa de la foto de portada" />}
-          <Campo etiqueta="Audio explicativo (opcional)" ayuda={`Un audio contando detalles de la prenda. Máximo ${LIMITE_AUDIO_MB} MB.`} id="panel-prenda-audio">
+          <Campo etiqueta="Audio explicativo (opcional)" ayuda={`Graba un audio contando detalles de la prenda. Máximo ${LIMITE_AUDIO_MB} MB.`} id="panel-prenda-audio">
             {audioPrenda ? (
               <div className="audio-carga">
                 <audio controls src={audioPrenda.url} />
@@ -625,13 +626,10 @@ export default function Panel({ seccion = 'resumen' }) {
                 </div>
               </div>
             ) : (
-              <Entrada
+              <GrabadoraAudio
                 id="panel-prenda-audio"
-                type="file"
-                accept="audio/*"
-                onChange={(e) => {
-                  const archivo = e.target.files?.[0]
-                  if (!archivo) return
+                avisar={avisar}
+                onGrabar={(archivo) => {
                   if (!archivo.type.startsWith('audio/')) return avisar('El archivo debe ser un audio (MP3, M4A o WAV).', 'aviso')
                   if (archivo.size > LIMITE_AUDIO_MB * 1024 * 1024) return avisar(`El audio supera los ${LIMITE_AUDIO_MB} MB. Graba uno más corto.`, 'aviso')
                   setAudioPrenda({ nombre: archivo.name, archivo, url: URL.createObjectURL(archivo) })

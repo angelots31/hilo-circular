@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import Garment, { TIPOS } from '../components/Garment.jsx'
+import GrabadoraAudio from '../components/GrabadoraAudio.jsx'
 import Mascot from '../components/Mascot.jsx'
 import { Aparece, Area, Boton, Campo, Entrada, Etiqueta, Pasos, Seccion, Selector, TituloSeccion } from '../components/ui.jsx'
 import { navigate } from '../lib/router.jsx'
@@ -250,20 +251,7 @@ export default function Subir() {
                       </div>
                     </div>
                   ) : (
-                    <label className="soltar soltar-audio" data-cursor="subir audio">
-                      <b>🎙️ Añade un audio con los detalles</b>
-                      <small>haz clic para elegirlo desde tu equipo · MP3, M4A o WAV · completamente opcional</small>
-                      <input
-                        id="audio-subir"
-                        type="file"
-                        accept="audio/*"
-                        onChange={(e) => {
-                          elegirAudio(e.target.files?.[0])
-                          // Permite volver a elegir el mismo archivo tras quitarlo.
-                          e.target.value = ''
-                        }}
-                      />
-                    </label>
+                    <GrabadoraAudio id="audio-subir" onGrabar={elegirAudio} avisar={avisar} />
                   )}
                 </Campo>
 

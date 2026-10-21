@@ -865,8 +865,13 @@ button { font-family: inherit; }
 .vista-previa { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: 0.8rem; }
 
 /* Carga opcional de un audio explicativo junto a la prenda. */
+button.soltar { width: 100%; font: inherit; color: inherit; text-align: center; }
 .soltar-audio { padding: 1.4rem 1.2rem; cursor: pointer; }
 .soltar-audio:hover { background: rgba(104, 114, 170, 0.1); border-color: var(--lavanda); }
+.soltar-audio.grabando { background: rgba(192, 101, 94, 0.1); border-color: #c0655e; }
+.soltar-audio.grabando:hover { background: rgba(192, 101, 94, 0.16); }
+.grab-punto { display: inline-block; width: 0.6rem; height: 0.6rem; margin-right: 0.35rem; border-radius: 50%; background: #c0655e; animation: grab-latido 1s infinite; }
+@keyframes grab-latido { 50% { opacity: 0.25; transform: scale(0.8); } }
 .audio-carga { display: grid; gap: 0.6rem; }
 .audio-carga audio { width: 100%; }
 .audio-carga-pie { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; flex-wrap: wrap; }
