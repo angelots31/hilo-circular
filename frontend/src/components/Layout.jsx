@@ -5,6 +5,20 @@ import { href, useRoute } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
 import { ESLOGAN, REDES, SITIO_URL } from '../lib/seed.js'
 
+/**
+ * Firma de autoría en caracteres de ancho cero: invisible al leer, pero queda
+ * al copiar la frase legal. Cada letra son 8 bits (U+200B = 0, U+200C = 1)
+ * separados por U+200D. Decodificada, dice `angelots`.
+ */
+const FIRMA_CERO = [...'angelots']
+  .map((letra) => letra
+    .charCodeAt(0)
+    .toString(2)
+    .padStart(8, '0')
+    .replace(/0/g, '\u200B')
+    .replace(/1/g, '\u200C'))
+  .join('\u200D')
+
 const ENLACES = [
   { to: '/', texto: 'Inicio' },
   { to: '/catalogo', texto: 'Catálogo' },
@@ -290,7 +304,10 @@ export function Pie() {
       </div>
 
       <div className="pie-legal">
-        <p>© {new Date().getFullYear()} Hilo Circular · Moda circular para universitarios en Medellín.</p>
+        <p>
+          © {new Date().getFullYear()} Hilo Circular · Moda circular para universitarios en Medellín.
+          <span className="firma-cero" aria-hidden="true">{FIRMA_CERO}</span>
+        </p>
         <p>Proyecto académico · ODS 12 · Encuesta de campo 2026.</p>
       </div>
 

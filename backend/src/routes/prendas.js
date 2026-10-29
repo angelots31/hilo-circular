@@ -12,6 +12,28 @@ const aNumero = (v, def = 0) => {
 }
 const aArray = (v, max = 99) => (Array.isArray(v) ? v.slice(0, max).map(String) : [])
 
+const MAX_MATERIALES = 4
+const MATERIAL_VALIDO = /^[a-z-]{2,40}$/
+
+/**
+ * Materiales de la prenda: hasta 4 claves que existan en la wiki de telas.
+ * Es opcional: una prenda sin datos también se publica.
+ */
+async function normalizarComposicion(valor) {
+  if (valor == null) return []
+  if (!Array.isArray(valor)) throw errorHttp(400, 'Los materiales deben venir en una lista.')
+  const claves = [...new Set(valor.map((v) => String(v).trim().toLowerCase()))].filter(Boolean)
+  if (!claves.length) return []
+  if (claves.length > MAX_MATERIALES) throw errorHttp(400, `Puedes indicar hasta ${MAX_MATERIALES} materiales.`)
+  if (claves.some((c) => !MATERIAL_VALIDO.test(c))) throw errorHttp(400, 'Hay un material que no reconocemos.')
+  const { rows } = await q(
+    `SELECT slug FROM telas WHERE slug IN (${claves.map((_, i) => `$${i + 1}`).join(',')})`,
+    claves,
+  )
+  if (rows.length !== claves.length) throw errorHttp(400, 'Hay un material que no está en la wiki de telas.')
+  return claves
+}
+
 /** Comprueba que quien pide sea el dueño de la prenda o un admin. */
 async function exigeDueno(req, id) {
   const { rows } = await q('SELECT * FROM prendas WHERE id = $1', [id])
@@ -31,12 +53,13 @@ router.post('/', authRequerida, asincrono(async (req, res) => {
 
   // Audio explicativo opcional: debe ser una URL de la nube (Cloudinary).
   const audio = typeof b.audio === 'string' && /^https?:\/\//.test(b.audio.trim()) ? b.audio.trim() : null
+  const composicion = await normalizarComposicion(b.composicion)
 
   const { rows } = await q(
     `INSERT INTO prendas
       (titulo, tipo, categoria, talla, estado, color, marca, valor, descripcion,
-       dueno_id, ciudad, barrio, disponible, destacada, fotos, paleta, audio)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+       dueno_id, ciudad, barrio, disponible, destacada, fotos, paleta, audio, composicion)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
      RETURNING *`,
     [
       String(b.titulo).trim(),
@@ -58,6 +81,7 @@ router.post('/', authRequerida, asincrono(async (req, res) => {
       aArray(b.fotos, LIMITE_FOTOS),
       aArray(b.paleta, 4),
       audio,
+      composicion,
     ],
   )
   // Si la persona pide curaduría al publicar, se crea la solicitud para el equipo.
@@ -86,18 +110,19 @@ router.post('/importar', authRequerida, soloAdmin, asincrono(async (req, res) =>
     const salida = []
     for (const p of lista.slice(0, 500)) {
       if (!String(p?.titulo || '').trim()) continue
+      const composicion = Array.isArray(p.composicion) ? p.composicion.slice(0, MAX_MATERIALES).map(String) : []
       const { rows } = await cliente.query(
         `INSERT INTO prendas
           (titulo, tipo, categoria, talla, estado, color, marca, valor, descripcion,
-           dueno_id, ciudad, barrio, disponible, destacada, fotos, paleta)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+           dueno_id, ciudad, barrio, disponible, destacada, fotos, paleta, composicion)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
          RETURNING *`,
         [
           String(p.titulo).trim(), p.tipo || 'camiseta', p.categoria || 'Accesorios', p.talla || 'Única',
           p.estado || 'Buen estado', p.color || null, p.marca || null, aNumero(p.valor),
           String(p.descripcion || 'Prenda importada.'), p.duenoId || req.usuario.id,
           'Medellín', p.barrio || null, p.disponible !== false, Boolean(p.destacada),
-          aArray(p.fotos, LIMITE_FOTOS), aArray(p.paleta, 4),
+          aArray(p.fotos, LIMITE_FOTOS), aArray(p.paleta, 4), composicion,
         ],
       )
       salida.push(camelizar(rows[0]))

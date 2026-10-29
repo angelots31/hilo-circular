@@ -15,6 +15,30 @@ export const BARRIOS = [
 ]
 export const METODOS_ENVIO = ['Domicilio', 'Punto de encuentro']
 
+// Cuenta de administración de la demo. El botón bajo el acceso la usa para
+// entrar directo al panel mientras el proyecto se presenta.
+export const ADMIN_DEMO = { email: 'admin@hilocircular.co', clave: 'demo123' }
+
+// Materiales de la wiki de telas (13 fichas). Las claves coinciden con la
+// columna `slug` de la tabla `telas` y con `prendas.composicion`.
+export const MATERIALES = [
+  { slug: 'algodon', nombre: 'Algodón' },
+  { slug: 'mezclilla', nombre: 'Mezclilla' },
+  { slug: 'lino', nombre: 'Lino' },
+  { slug: 'lana', nombre: 'Lana' },
+  { slug: 'seda', nombre: 'Seda' },
+  { slug: 'cuero', nombre: 'Cuero' },
+  { slug: 'poliester', nombre: 'Poliéster' },
+  { slug: 'nailon', nombre: 'Nailon' },
+  { slug: 'acrilico', nombre: 'Acrílico' },
+  { slug: 'elastano', nombre: 'Elastano' },
+  { slug: 'cuero-sintetico', nombre: 'Cuero sintético' },
+  { slug: 'viscosa', nombre: 'Viscosa' },
+  { slug: 'mezclas', nombre: 'Mezclas' },
+]
+
+export const nombreMaterial = (slug) => MATERIALES.find((m) => m.slug === slug)?.nombre ?? slug
+
 export const ESLOGAN = '¡Lo que ya tienes también es moda!'
 
 // Dirección pública que codifica el QR del pie de página.

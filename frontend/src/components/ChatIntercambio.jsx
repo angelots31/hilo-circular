@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import PrendaMini from './PrendaMini.jsx'
 import { Avatar, Boton, Entrada, Etiqueta, Modal } from './ui.jsx'
 import { useStore } from '../lib/store.jsx'
+import { abrirQrCon } from '../lib/qr.js'
 
 const SUGERENCIAS = [
   '¿Sigue disponible?',
@@ -86,6 +87,15 @@ export default function ChatIntercambio({ intercambio, abierto, onCerrar, onVerP
           </span>
           <Etiqueta tono={intercambio.estado === 'Completado' ? 'verde' : 'ambar'}>{intercambio.estado}</Etiqueta>
         </div>
+        <button
+          type="button"
+          className="chat-impacto"
+          onClick={() => abrirQrCon([
+            ...new Set([...(ofrece?.composicion ?? []), ...(pide?.composicion ?? [])]),
+          ])}
+        >
+          Ver el impacto de este intercambio
+        </button>
       </div>
 
       <div className="charla" role="log" aria-live="polite" aria-label="Mensajes del intercambio">

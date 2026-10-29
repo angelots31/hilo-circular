@@ -1,0 +1,18 @@
+/* EQUIPO */
+    Autor y desarrollador: angelots
+    Proyecto: Hilo Circular · moda circular para universitarios en Medellín
+
+/* EQUIPO DEL PROYECTO */
+    Jimena Andrea Graciano Vásquez · Diseñadora gráfica
+    Camilo Marín Bolaños · Líder de proyecto y editor
+    Isaac Hurtado Ramírez · Estratega de solución
+    Valery Uparela Arroyo · Investigadora de contexto
+    Sofía Balbón Patiño · Investigadora de UX
+
+/* SITIO */
+    Lenguaje: español (Colombia)
+    Stack: React + Vite · Node + Express + PostgreSQL
+    Última actualización: 2026-10-28
+
+/* GRACIAS */
+    A las personas que intercambian, reparan y transforman su ropa.

@@ -6,7 +6,10 @@ import { Aparece, Area, Boton, Campo, Entrada, Etiqueta, Pasos, Seccion, Selecto
 import { navigate } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
 import { subirAudio, subirImagen } from '../lib/api.js'
-import { BARRIOS, CATEGORIAS, CIUDAD, ESTADOS, TALLAS } from '../lib/seed.js'
+import { BARRIOS, CATEGORIAS, CIUDAD, ESTADOS, MATERIALES, TALLAS } from '../lib/seed.js'
+import { celebrar } from '../lib/movimiento.js'
+
+const MAX_MATERIALES = 4
 
 const COLORES = [
   { nombre: 'Negro', hex: '#2f2833' },
@@ -45,12 +48,26 @@ export default function Subir() {
     barrio: usuario?.barrio ?? BARRIOS[0],
     metodo: 'Domicilio',
     destacada: false,
+    composicion: [],
+    sinMateriales: false,
   })
 
   const paleta = COLORES.find((c) => c.nombre === datos.color)
   const paletaArte = [paleta?.hex ?? '#6872aa', '#6872aa']
 
   const actualizar = (cambios) => setDatos((d) => ({ ...d, ...cambios }))
+
+  const alternarMaterial = (slug) => {
+    setDatos((d) => {
+      const activo = d.composicion.includes(slug)
+      if (!activo && d.composicion.length >= MAX_MATERIALES) return d
+      return {
+        ...d,
+        sinMateriales: false,
+        composicion: activo ? d.composicion.filter((x) => x !== slug) : [...d.composicion, slug],
+      }
+    })
+  }
 
   const agregarFotos = (lista) => {
     const nuevas = Array.from(lista).slice(0, 6 - fotos.length).map((archivo) => ({
@@ -98,9 +115,13 @@ export default function Subir() {
         paleta: paletaArte,
         fotos: urls,
         audio: urlAudio,
+        composicion: datos.composicion,
         disponible: true,
       })
-      if (ok) navigate('/panel?seccion=prendas')
+      if (ok) {
+        celebrar()
+        navigate('/panel?seccion=prendas')
+      }
     } catch (error) {
       avisar(error.message || 'No pudimos subir las fotos.', 'aviso')
     } finally {
@@ -173,8 +194,48 @@ export default function Subir() {
                   </div>
                 </Campo>
 
-                <Campo etiqueta="Descripción" ayuda="Menciona el estado real, si tiene arreglos y cómo la has usado." id="descripcion">
+                <Campo
+                  etiqueta="Descripción"
+                  ayuda="Menciona el estado real, si tiene arreglos y cómo la has usado."
+                  id="descripcion"
+                >
                   <Area id="descripcion" value={datos.descripcion} onChange={(e) => actualizar({ descripcion: e.target.value })} placeholder="La compré hace dos años, la usé pocas veces. Tiene un remiendo pequeño en el forro…" />
+                </Campo>
+
+                <Campo
+                  etiqueta="¿De qué está hecha?"
+                  ayuda={`Hasta ${MAX_MATERIALES} materiales. Es opcional: si no estás seguro, mira la etiqueta interior.`}
+                  id="composicion"
+                >
+                  <div className="chips" id="composicion">
+                    {MATERIALES.map((m) => {
+                      const activo = datos.composicion.includes(m.slug)
+                      const lleno = !activo && datos.composicion.length >= MAX_MATERIALES
+                      return (
+                        <button
+                          key={m.slug}
+                          type="button"
+                          className={`chip ${activo ? 'activo' : ''}`}
+                          aria-pressed={activo}
+                          disabled={lleno}
+                          onClick={() => alternarMaterial(m.slug)}
+                        >
+                          {m.nombre}
+                        </button>
+                      )
+                    })}
+                    <button
+                      type="button"
+                      className={`chip ${datos.sinMateriales ? 'activo' : ''}`}
+                      aria-pressed={datos.sinMateriales}
+                      onClick={() => actualizar({ sinMateriales: !datos.sinMateriales, composicion: [] })}
+                    >
+                      No sé
+                    </button>
+                  </div>
+                  {datos.sinMateriales && (
+                    <span className="campo-ayuda">Tranquila/o: mira la etiqueta interior y complétalo cuando puedas.</span>
+                  )}
                 </Campo>
               </div>
             )}

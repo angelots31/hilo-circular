@@ -23,16 +23,21 @@ router.get('/', asincrono(async (req, res) => {
   let favoritos = []
   let notificaciones = []
   let mensajes = []
+  let escaneosQr = null
 
   if (esAdmin) {
-    const [p, i, r, n, m] = await Promise.all([
+    const hoy = new Date().toISOString().slice(0, 10)
+    const [p, i, r, n, m, qrHoy, qrTotal] = await Promise.all([
       q('SELECT * FROM pedidos ORDER BY fecha DESC, id DESC'),
       q('SELECT * FROM intercambios ORDER BY fecha DESC, id DESC'),
       q('SELECT * FROM reportes ORDER BY fecha DESC, id DESC'),
       q('SELECT * FROM notificaciones WHERE usuario_id = $1 ORDER BY creada DESC', [yo.id]),
       q('SELECT * FROM mensajes ORDER BY creada ASC, id ASC'),
+      q('SELECT conteo FROM qr_visitas WHERE dia = $1', [hoy]),
+      q('SELECT COALESCE(SUM(conteo), 0) AS total FROM qr_visitas'),
     ])
     pedidos = p.rows; intercambios = i.rows; reportes = r.rows; notificaciones = n.rows; mensajes = m.rows
+    escaneosQr = { hoy: Number(qrHoy.rows[0]?.conteo ?? 0), total: Number(qrTotal.rows[0]?.total ?? 0) }
   } else if (yo) {
     const [p, i, f, n, m] = await Promise.all([
       q('SELECT * FROM pedidos WHERE usuario_id = $1 OR receptor_id = $1 ORDER BY fecha DESC, id DESC', [yo.id]),
@@ -61,6 +66,7 @@ router.get('/', asincrono(async (req, res) => {
     favoritos,
     notificaciones: camelizarFilas(notificaciones),
     mensajes: camelizarFilas(mensajes),
+    escaneosQr,
     usuario: yo ? usuarioSeguro(yo) : null,
   })
 }))

@@ -27,6 +27,10 @@ try {
   await cliente.query(await fs.readFile(path.join(sqlDir, 'schema.sql'), 'utf8'))
   console.log('✔ Esquema creado')
 
+  // La wiki de telas es contenido del producto, no dato de demostración.
+  await cliente.query(await fs.readFile(path.join(sqlDir, 'seed-telas.sql'), 'utf8'))
+  console.log('✔ Wiki de telas cargada (13 fichas)')
+
   if (conDemo) {
     await cliente.query(await fs.readFile(path.join(sqlDir, 'seed-demo.sql'), 'utf8'))
     console.log('✔ Datos de demostración cargados (solo para pruebas locales)')

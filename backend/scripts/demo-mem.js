@@ -24,6 +24,7 @@ db.public.registerFunction({ name: 'now', returns: DataType.timestamptz, impleme
 const quitarExtensiones = (sql) => sql.replace(/CREATE EXTENSION[^;]*;/gi, '')
 db.public.none(quitarExtensiones(fs.readFileSync(path.join(sqlDir, 'schema.sql'), 'utf8')))
 db.public.none(quitarExtensiones(fs.readFileSync(path.join(sqlDir, 'seed-demo.sql'), 'utf8')))
+db.public.none(quitarExtensiones(fs.readFileSync(path.join(sqlDir, 'seed-telas.sql'), 'utf8')))
 
 const { configurarPool } = await import('../src/db.js')
 configurarPool(new (db.adapters.createPg().Pool)())
@@ -33,4 +34,5 @@ const puerto = Number(process.env.PORT) || 4000
 crearApp().listen(puerto, () => {
   console.log(`Hilo Circular API (demo en memoria) en http://localhost:${puerto}`)
   console.log('Cuentas: valentina@hilocircular.co / admin@hilocircular.co · contraseña demo123')
+  console.log('Wiki de telas: http://localhost:' + puerto + '/api/telas')
 })

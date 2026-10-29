@@ -17,6 +17,14 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
+      - key: JWT_EXPIRA
+        value: 7d
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: IA_MODELO
+        value: claude-haiku-5-5
+      - key: IA_TOPE_DIARIO
+        value: "300"
       - key: PGSSL
         value: "true"
       - key: CORS_ORIGIN

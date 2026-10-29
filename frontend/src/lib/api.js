@@ -17,10 +17,12 @@ export function fijarToken(nuevo) {
 export const leerToken = () => token
 
 export class ApiError extends Error {
-  constructor(mensaje, estado) {
+  constructor(mensaje, estado, campos) {
     super(mensaje)
     this.name = 'ApiError'
     this.estado = estado
+    // Errores por campo que manda el backend: { email: '...', clave: '...' }.
+    this.campos = campos || null
   }
 }
 
@@ -43,7 +45,7 @@ async function pedir(ruta, { method = 'GET', body, auth = true } = {}) {
   const texto = await res.text()
   let datos = null
   if (texto) { try { datos = JSON.parse(texto) } catch { datos = null } }
-  if (!res.ok) throw new ApiError(datos?.error || `Error ${res.status}`, res.status)
+  if (!res.ok) throw new ApiError(datos?.error || `Error ${res.status}`, res.status, datos?.campos)
   return datos
 }
 
@@ -51,6 +53,11 @@ export const api = {
   datos: () => pedir('/api/datos'),
   registro: (cuerpo) => pedir('/api/auth/registro', { method: 'POST', body: cuerpo, auth: false }),
   login: (email, clave) => pedir('/api/auth/login', { method: 'POST', body: { email, clave }, auth: false }),
+
+  telas: (materiales) => pedir(`/api/telas${materiales?.length ? `?m=${encodeURIComponent(materiales.join(','))}` : ''}`, { auth: false }),
+  visitaQr: () => pedir('/api/qr/visita', { method: 'POST', auth: false }),
+  preguntarIA: (pregunta, materiales) =>
+    pedir('/api/conciencia/pregunta', { method: 'POST', body: { pregunta, materiales }, auth: false }),
 
   actualizarPerfil: (cuerpo) => pedir('/api/usuarios/me', { method: 'PUT', body: cuerpo }),
   solicitarVerificacion: () => pedir('/api/usuarios/me/verificacion', { method: 'POST' }),

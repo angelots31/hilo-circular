@@ -11,8 +11,9 @@ process.env.CLOUDINARY_CLOUD_NAME = ''
 process.env.CLOUDINARY_API_KEY = ''
 process.env.CLOUDINARY_API_SECRET = ''
 
-const { configurarPool } = await import('../src/db.js')
+const { configurarPool, q } = await import('../src/db.js')
 const { crearApp } = await import('../src/app.js')
+const { configurarIA } = await import('../src/ia.js')
 
 const sqlDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'sql')
 const limpiar = (sql) => sql.replace(/CREATE EXTENSION[^;]*;/gi, '')
@@ -251,7 +252,7 @@ test('marcar reseña como útil', async () => {
 test('registro de una cuenta nueva', async () => {
   const { estado, cuerpo } = await pedir('/api/auth/registro', {
     method: 'POST',
-    body: { nombre: 'Persona Nueva', email: 'nueva@hilocircular.co', clave: 'clave123', barrio: 'Belén' },
+    body: { nombre: 'Persona Nueva', email: 'nueva@hilocircular.co', clave: 'clave123', barrio: 'Belén', terminos: true },
   })
   assert.equal(estado, 201)
   assert.ok(cuerpo.token)
@@ -259,9 +260,10 @@ test('registro de una cuenta nueva', async () => {
 
   const repetido = await pedir('/api/auth/registro', {
     method: 'POST',
-    body: { nombre: 'Persona Nueva', email: 'nueva@hilocircular.co', clave: 'clave123' },
+    body: { nombre: 'Persona Nueva', email: 'nueva@hilocircular.co', clave: 'clave123', barrio: 'Belén', terminos: true },
   })
   assert.equal(repetido.estado, 409)
+  assert.ok(repetido.cuerpo.campos.email)
 
   const token = await entrar('nueva@hilocircular.co', 'clave123')
   const verificacion = await pedir('/api/usuarios/me/verificacion', { method: 'POST', token })
@@ -343,4 +345,194 @@ test('la firma de Cloudinary avisa si no está configurado', async () => {
   const { estado, cuerpo } = await pedir('/api/uploads/firma', { token })
   assert.equal(estado, 500)
   assert.match(cuerpo.error, /Cloudinary/)
+})
+
+/* ------------------------------------------------------------------ */
+/*  Validaciones de registro y acceso                                  */
+/* ------------------------------------------------------------------ */
+
+const registroValido = (extra = {}) => ({
+  nombre: 'Cuenta De Prueba',
+  email: 'prueba@hilocircular.co',
+  clave: 'clave1234',
+  barrio: 'Belén',
+  terminos: true,
+  ...extra,
+})
+
+test('registro: cada regla se cumple también en el servidor', async () => {
+  const casos = [
+    [{ nombre: 'Lu' }, 'nombre'],
+    [{ nombre: 'Lu1s' }, 'nombre'],
+    [{ nombre: 'A'.repeat(61) }, 'nombre'],
+    [{ email: 'sin-arroba' }, 'email'],
+    [{ email: 'a@b' }, 'email'],
+    [{ clave: 'corta1' }, 'clave'],
+    [{ clave: 'solamenteletras' }, 'clave'],
+    [{ clave: '12345678' }, 'clave'],
+    [{ clave: 'hilocircular' }, 'clave'],
+    [{ barrio: 'Ciudad Jardín' }, 'barrio'],
+    [{ bio: 'x'.repeat(281) }, 'bio'],
+    [{ intereses: ['Chaquetas', 'Vestidos', 'Calzado', 'Punto', 'Accesorios', 'Reparación', 'Vintage', 'Deportivo', 'Otro'] }, 'intereses'],
+    [{ terminos: false }, 'terminos'],
+  ]
+
+  for (const [cambios, campo] of casos) {
+    const { estado, cuerpo } = await pedir('/api/auth/registro', { method: 'POST', body: registroValido(cambios) })
+    assert.equal(estado, 400, `debe rechazar ${JSON.stringify(cambios)}`)
+    assert.ok(cuerpo.campos?.[campo], `debe traer el error de ${campo}`)
+  }
+})
+
+test('login: un solo mensaje para cualquier fallo', async () => {
+  const inexistente = await pedir('/api/auth/login', {
+    method: 'POST',
+    body: { email: 'nadie-registrado@hilocircular.co', clave: 'clave1234' },
+  })
+  assert.equal(inexistente.estado, 401)
+  assert.equal(inexistente.cuerpo.error, 'Correo o contraseña incorrectos.')
+
+  const malaClave = await pedir('/api/auth/login', {
+    method: 'POST',
+    body: { email: 'valentina@hilocircular.co', clave: 'otraClave1' },
+  })
+  assert.equal(malaClave.estado, 401)
+  assert.equal(malaClave.cuerpo.error, inexistente.cuerpo.error)
+})
+
+test('bloqueo de la cuenta tras cinco intentos fallidos', async () => {
+  const email = 'bloqueo@hilocircular.co'
+  const alta = await pedir('/api/auth/registro', {
+    method: 'POST',
+    body: registroValido({ email, nombre: 'Cuenta Bloqueo' }),
+  })
+  assert.equal(alta.estado, 201)
+
+  for (let i = 0; i < 5; i += 1) {
+    const { estado } = await pedir('/api/auth/login', { method: 'POST', body: { email, clave: 'claveMala1' } })
+    assert.equal(estado, 401)
+  }
+
+  // Aun con la contraseña correcta, la cuenta queda bloqueada 15 minutos.
+  const bloqueada = await pedir('/api/auth/login', { method: 'POST', body: { email, clave: 'clave1234' } })
+  assert.equal(bloqueada.estado, 429)
+  assert.match(bloqueada.cuerpo.error, /Demasiados intentos/)
+})
+
+/* ------------------------------------------------------------------ */
+/*  Wiki de telas, materiales y QR                                     */
+/* ------------------------------------------------------------------ */
+
+test('wiki de telas: fichas por material y contador del QR', async () => {
+  await q(`INSERT INTO telas (slug, nombre, familia, resumen, impacto, ayuda, cuidado, reparar_reusar, fin_de_vida, fuentes)
+           VALUES ('algodon', 'Algodón', 'Natural', 'resumen', 'impacto', 'ayuda', ARRAY['cuidado'], ARRAY['reparar'], 'fin', '[]'::jsonb)
+           ON CONFLICT (slug) DO NOTHING`)
+  await q(`INSERT INTO telas (slug, nombre, familia, resumen, impacto, ayuda, cuidado, reparar_reusar, fin_de_vida, fuentes)
+           VALUES ('poliester', 'Poliéster', 'Sintética', 'resumen', 'impacto', 'ayuda', ARRAY['cuidado'], ARRAY['reparar'], 'fin', '[]'::jsonb)
+           ON CONFLICT (slug) DO NOTHING`)
+
+  const todas = await pedir('/api/telas')
+  assert.equal(todas.estado, 200)
+  assert.ok(todas.cuerpo.telas.length >= 2)
+
+  const pedidas = await pedir('/api/telas?m=poliester,algodon')
+  assert.equal(pedidas.estado, 200)
+  assert.deepEqual(pedidas.cuerpo.telas.map((t) => t.slug), ['poliester', 'algodon'])
+  assert.equal(pedidas.cuerpo.telas[0].finDeVida, 'fin')
+
+  const visita = await pedir('/api/qr/visita', { method: 'POST' })
+  assert.equal(visita.estado, 201)
+  await pedir('/api/qr/visita', { method: 'POST' })
+
+  const admin = await entrar('admin@hilocircular.co')
+  const datos = await pedir('/api/datos', { token: admin })
+  assert.equal(datos.cuerpo.escaneosQr.hoy, 2)
+  assert.ok(datos.cuerpo.escaneosQr.total >= 2)
+})
+
+test('la prenda acepta materiales que existen en la wiki', async () => {
+  const token = await entrar('valentina@hilocircular.co')
+
+  const ok = await pedir('/api/prendas', {
+    method: 'POST',
+    token,
+    body: {
+      titulo: 'Chaqueta de algodón con bolsillos', categoria: 'Chaquetas', talla: 'M',
+      descripcion: 'Prenda con materiales registrados en la wiki.',
+      composicion: ['algodon', 'poliester'],
+    },
+  })
+  assert.equal(ok.estado, 201)
+  assert.deepEqual(ok.cuerpo.prenda.composicion, ['algodon', 'poliester'])
+
+  const inventado = await pedir('/api/prendas', {
+    method: 'POST',
+    token,
+    body: { titulo: 'Chaqueta de material inventado', categoria: 'Chaquetas', talla: 'M', composicion: ['unobtanium'] },
+  })
+  assert.equal(inventado.estado, 400)
+
+  const demasiados = await pedir('/api/prendas', {
+    method: 'POST',
+    token,
+    body: {
+      titulo: 'Chaqueta con demasiados materiales', categoria: 'Chaquetas', talla: 'M',
+      composicion: ['algodon', 'poliester', 'lana', 'seda', 'lino'],
+    },
+  })
+  assert.equal(demasiados.estado, 400)
+})
+
+/* ------------------------------------------------------------------ */
+/*  Asistente de IA                                                    */
+/* ------------------------------------------------------------------ */
+
+test('el asistente responde con las fichas de los materiales', async () => {
+  configurarIA(async ({ pregunta, fichas }) => {
+    assert.ok(fichas.length > 0, 'debe recibir las fichas')
+    return `Respuesta simulada a: ${pregunta}`
+  })
+
+  const { estado, cuerpo } = await pedir('/api/conciencia/pregunta', {
+    method: 'POST',
+    body: { pregunta: '¿Cómo lavo una chaqueta de poliéster?', materiales: ['poliester', 'algodon'] },
+  })
+  assert.equal(estado, 200)
+  assert.match(cuerpo.respuesta, /Respuesta simulada/)
+  assert.equal(cuerpo.fuentes.length, 2)
+})
+
+test('el asistente rechaza preguntas demasiado largas', async () => {
+  const { estado } = await pedir('/api/conciencia/pregunta', {
+    method: 'POST',
+    body: { pregunta: 'x'.repeat(301) },
+  })
+  assert.equal(estado, 400)
+})
+
+test('el asistente respeta el tope diario', async () => {
+  const previo = process.env.IA_TOPE_DIARIO
+  process.env.IA_TOPE_DIARIO = '1'
+  try {
+    const { estado } = await pedir('/api/conciencia/pregunta', {
+      method: 'POST',
+      body: { pregunta: '¿Qué hago con una camiseta rota?', materiales: ['algodon'] },
+    })
+    assert.equal(estado, 429)
+  } finally {
+    if (previo === undefined) delete process.env.IA_TOPE_DIARIO
+    else process.env.IA_TOPE_DIARIO = previo
+  }
+})
+
+test('el asistente avisa cuando no está configurado', async () => {
+  configurarIA(null)
+  delete process.env.ANTHROPIC_API_KEY
+
+  const { estado, cuerpo } = await pedir('/api/conciencia/pregunta', {
+    method: 'POST',
+    body: { pregunta: '¿Cómo cuido una prenda de lana?', materiales: ['algodon'] },
+  })
+  assert.equal(estado, 503)
+  assert.match(cuerpo.error, /no está configurado/)
 })

@@ -8,6 +8,8 @@ import {
 } from '../components/ui.jsx'
 import { navigate, useRoute } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
+import { abrirQrCon } from '../lib/qr.js'
+import { celebrar } from '../lib/movimiento.js'
 
 const TONO = { Pendiente: 'ambar', Aceptado: 'verde', Rechazado: 'rojo', Completado: 'lavanda', Cancelado: 'neutro' }
 
@@ -150,6 +152,15 @@ export default function Intercambios() {
                         <Boton tamano="sm" variante="texto" onClick={() => setDetalle(pide ?? ofrece)}>
                           Ver prendas
                         </Boton>
+                        <Boton
+                          tamano="sm"
+                          variante="texto"
+                          onClick={() => abrirQrCon([
+                            ...new Set([...(ofrece?.composicion ?? []), ...(pide?.composicion ?? [])]),
+                          ])}
+                        >
+                          Ver el impacto de este intercambio
+                        </Boton>
                         {soyReceptor && x.estado === 'Pendiente' && (
                           <>
                             <Boton tamano="sm" onClick={() => responderSolicitud(x.id, 'Aceptado')}>Aceptar</Boton>
@@ -162,7 +173,12 @@ export default function Intercambios() {
                         {x.estado === 'Aceptado' && (
                           <>
                             <Boton tamano="sm" onClick={() => navigate(`/domicilio?intercambio=${x.id}`)}>Coordinar domicilio</Boton>
-                            <Boton tamano="sm" variante="fantasma" onClick={() => responderSolicitud(x.id, 'Completado')}>Marcar completado</Boton>
+                            <Boton tamano="sm" variante="fantasma" onClick={async () => {
+                              const ok = await responderSolicitud(x.id, 'Completado')
+                              if (ok) celebrar()
+                            }}>
+                              Marcar completado
+                            </Boton>
                           </>
                         )}
                         {x.estado === 'Completado' && (

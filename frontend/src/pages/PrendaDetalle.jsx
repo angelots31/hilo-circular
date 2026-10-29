@@ -7,6 +7,7 @@ import { Avatar, Area, Boton, Campo, Estrellas, Etiqueta, Modal, Seccion, Select
 import { navigate } from '../lib/router.jsx'
 import { useStore } from '../lib/store.jsx'
 import { compartirEnlace } from '../lib/compartir.js'
+import { nombreMaterial } from '../lib/seed.js'
 
 export default function PrendaDetalle({ id }) {
   const [vistaIdx, setVistaIdx] = useState(0)
@@ -107,6 +108,22 @@ export default function PrendaDetalle({ id }) {
                   <b>🎙 La voz de quien la publica</b>
                   <p style={{ fontSize: '0.85rem', opacity: 0.75 }}>Un audio con los detalles reales de la prenda.</p>
                   <audio controls preload="none" src={prenda.audio} />
+                </div>
+              )}
+
+              {Array.isArray(prenda.composicion) && prenda.composicion.length > 0 && (
+                <div className="tarjeta prenda-impacto" style={{ marginTop: '1rem' }}>
+                  <b>Así ayuda reutilizarla</b>
+                  <p style={{ fontSize: '0.88rem', opacity: 0.82 }}>
+                    Está hecha de {prenda.composicion.map(nombreMaterial).join(', ')}. Al intercambiarla se evita
+                    fabricar otra prenda y se retrasa su paso a residuo.
+                  </p>
+                  <div className="chips">
+                    {prenda.composicion.map((m) => <Etiqueta key={m} tono="lavanda">{nombreMaterial(m)}</Etiqueta>)}
+                  </div>
+                  <a href={`#/conciencia?m=${encodeURIComponent(prenda.composicion.join(','))}`}>
+                    Ver cómo cuidarla y repararla →
+                  </a>
                 </div>
               )}
 

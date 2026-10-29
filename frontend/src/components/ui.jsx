@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from 'react'
+import { AnimatePresence, m, useInView } from 'motion/react'
 import Mascot from './Mascot.jsx'
 import { Adornos } from './Adornos.jsx'
 import { href } from '../lib/router.jsx'
@@ -94,8 +95,8 @@ export function Campo({ etiqueta, ayuda, error, id, children, className = '' }) 
     <label className={`campo ${className}`.trim()} htmlFor={id}>
       {etiqueta && <span className="campo-etiqueta">{etiqueta}</span>}
       {children}
-      {ayuda && !error && <span className="campo-ayuda">{ayuda}</span>}
-      {error && <span className="campo-error" role="alert">{error}</span>}
+      {ayuda && !error && <span className="campo-ayuda" id={id ? `${id}-ayuda` : undefined}>{ayuda}</span>}
+      {error && <span className="campo-error" id={id ? `${id}-error` : undefined} role="alert">{error}</span>}
     </label>
   )
 }
@@ -104,12 +105,16 @@ export const Entrada = forwardRef(({ className = '', ...resto }, ref) => (
   <input ref={ref} className={`entrada ${className}`.trim()} {...resto} />
 ))
 Entrada.displayName = 'Entrada'
-export const Selector = ({ children, className = '', ...resto }) => (
-  <select className={`entrada selector ${className}`.trim()} {...resto}>
+export const Selector = forwardRef(({ children, className = '', ...resto }, ref) => (
+  <select ref={ref} className={`entrada selector ${className}`.trim()} {...resto}>
     {children}
   </select>
-)
-export const Area = ({ className = '', ...resto }) => <textarea className={`entrada area ${className}`.trim()} rows={4} {...resto} />
+))
+Selector.displayName = 'Selector'
+export const Area = forwardRef(({ className = '', ...resto }, ref) => (
+  <textarea ref={ref} className={`entrada area ${className}`.trim()} rows={4} {...resto} />
+))
+Area.displayName = 'Area'
 
 /* ------------------------------------------------------------------- Modal */
 
@@ -130,15 +135,20 @@ export function Modal({ abierto, onCerrar, titulo, descripcion, children, pie, a
     }
   }, [abierto, onCerrar])
 
-  if (!abierto) return null
   return (
-    <div className="modal-fondo" onClick={onCerrar} role="presentation">
-      <div
+    <AnimatePresence>
+      {abierto && (
+      <div className="modal-fondo" onClick={onCerrar} role="presentation">
+      <m.div
         className="modal"
         style={{ '--ancho': ancho }}
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
+        initial={{ opacity: 0, y: 16, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 10, scale: 0.99 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 30 }}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="modal-cabeza">
@@ -150,8 +160,10 @@ export function Modal({ abierto, onCerrar, titulo, descripcion, children, pie, a
         </header>
         <div className="modal-cuerpo">{children}</div>
         {pie && <footer className="modal-pie">{pie}</footer>}
+      </m.div>
       </div>
-    </div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -401,37 +413,72 @@ export function Barra({ valor, maximo = 100, tono = 'lavanda', titulo }) {
 
 /* ------------------------------------------------------------ Animaciones */
 
-/** Revela el contenido al entrar en pantalla. */
+/**
+ * Revela el contenido al entrar en pantalla y anima su reacomodo cuando la
+ * lista cambia (por ejemplo, al filtrar el catálogo).
+ * Mantiene la misma API que antes para no tocar las páginas.
+ */
 export function Aparece({ children, retraso = 0, className = '', as: Etiqueta = 'div' }) {
-  const [ref, visible] = useVisible()
+  const ref = useRef(null)
+  const visible = useInView(ref, { once: true, margin: '0px 0px -12% 0px' })
+  const Componente = m[Etiqueta] ?? m.div
   return (
-    <Etiqueta
+    <Componente
       ref={ref}
+      layout
       className={`aparece ${visible ? 'visible' : ''} ${className}`.trim()}
-      style={{ transitionDelay: `${retraso}ms` }}
+      initial={{ opacity: 0, y: 24 }}
+      animate={visible ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+      transition={{
+        duration: 0.55,
+        delay: retraso / 1000,
+        ease: [0.2, 0.8, 0.2, 1],
+        layout: { duration: 0.35, ease: [0.2, 0.8, 0.2, 1] },
+      }}
     >
       {children}
-    </Etiqueta>
+    </Componente>
   )
 }
 
-/** Detecta cuándo un nodo entra en pantalla (una sola vez). */
-function useVisible() {
-  const [nodo, setNodo] = useState(null)
-  const [visible, setVisible] = useState(false)
+/* -------------------------------------------------------------- Contador */
+
+/**
+ * Cifra que sube al aparecer. Respeta el sufijo del valor original
+ * («80 %» → 0 %…80 %) y no anima si el sistema pide reducir movimiento.
+ */
+export function Cifra({ valor, duracion = 1.2, className = '' }) {
+  const ref = useRef(null)
+  const enVista = useInView(ref, { once: true, margin: '0px 0px -10% 0px' })
+  const [texto, setTexto] = useState(String(valor ?? ''))
+
   useEffect(() => {
-    if (!nodo) return
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setVisible(true)
-          io.disconnect()
-        }
-      },
-      { rootMargin: '0px 0px -12% 0px' },
-    )
-    io.observe(nodo)
-    return () => io.disconnect()
-  }, [nodo])
-  return [setNodo, visible]
+    const original = String(valor ?? '')
+    const partes = original.match(/^(\d+(?:[.,]\d+)?)(.*)$/)
+    if (!partes) { setTexto(original); return undefined }
+    if (!enVista) { setTexto(original); return undefined }
+    if (typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setTexto(original)
+      return undefined
+    }
+
+    const numero = Number(partes[1].replace(',', '.'))
+    const decimales = (partes[1].split(/[.,]/)[1] || '').length
+    const sufijo = partes[2] || ''
+    const inicio = performance.now()
+    let frame = 0
+
+    const paso = (tiempo) => {
+      const avance = Math.min(1, (tiempo - inicio) / (duracion * 1000))
+      const suave = 1 - (1 - avance) ** 3
+      const actual = numero * suave
+      setTexto(`${actual.toFixed(decimales).replace('.', ',')}${sufijo}`)
+      if (avance < 1) frame = requestAnimationFrame(paso)
+      else setTexto(original)
+    }
+    frame = requestAnimationFrame(paso)
+    return () => cancelAnimationFrame(frame)
+  }, [enVista, valor, duracion])
+
+  return <span ref={ref} className={className}>{texto}</span>
 }

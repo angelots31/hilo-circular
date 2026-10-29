@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Mascot from '../components/Mascot.jsx'
 import { Estrella, Puntos, Trebol } from '../components/Adornos.jsx'
 import PrendaCard from '../components/PrendaCard.jsx'
-import { Aparece, Boton, EstadoVacio, Seccion, TituloSeccion } from '../components/ui.jsx'
+import { Aparece, Boton, Cifra, EstadoVacio, Seccion, TituloSeccion } from '../components/ui.jsx'
 import { useStore } from '../lib/store.jsx'
 import { CIFRAS, ESLOGAN, FORMAS, PASOS, VOCES } from '../lib/seed.js'
 
@@ -62,7 +62,7 @@ export default function Home() {
               <div className="hero-datos">
                 {CIFRAS.map((c) => (
                   <div className="hero-dato" key={c.texto}>
-                    <b>{c.valor}</b>
+                    <b><Cifra valor={c.valor} /></b>
                     <span>{c.texto}</span>
                   </div>
                 ))}

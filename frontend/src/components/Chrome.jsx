@@ -42,7 +42,16 @@ export function Fondo() {
       })
     }
     if (reducir) { pintar(6); return }
-    const bucle = (ms) => { pintar(ms / 1000); raf = requestAnimationFrame(bucle) }
+    let ultimo = -Infinity
+    const bucle = (ms) => {
+      raf = requestAnimationFrame(bucle)
+      // Con la pestaña oculta no se pinta y se baja a 30 cuadros por segundo:
+      // el fondo decorativo no necesita más y así no compite con el scroll.
+      if (document.hidden) return
+      if (ms - ultimo < 1000 / 30) return
+      ultimo = ms
+      pintar(ms / 1000)
+    }
     raf = requestAnimationFrame(bucle)
     return () => cancelAnimationFrame(raf)
   }, [ligero])

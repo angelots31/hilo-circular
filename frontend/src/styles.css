@@ -461,7 +461,6 @@ button { font-family: inherit; }
   background: var(--bruma);
   border-radius: var(--radio-lg);
   box-shadow: var(--sombra-media);
-  animation: entrar-arriba 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 .modal-cabeza { position: sticky; top: 0; display: flex; justify-content: space-between; gap: 1rem; padding: 1.4rem 1.6rem 1rem; background: var(--bruma); border-bottom: 1px solid var(--línea); z-index: 2; }
 .modal-cabeza h3 { font-size: 1.5rem; }
@@ -1005,7 +1004,7 @@ body.modo-acceso { background: var(--bruma); }
 
 /* ------------------------------------------------------------- Animaciones */
 
-.aparece { opacity: 0; transform: translateY(26px); transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.aparece { will-change: opacity, transform; }
 .aparece.visible { opacity: 1; transform: none; }
 
 /* ------------------------------------------------------------ Adaptación */
@@ -1945,12 +1944,12 @@ html { scroll-padding-top: 4.8rem; }
 
   html { scroll-padding-top: 5.4rem; }
   .seccion { padding-block: 3.6rem; }
-  #contenido > .seccion:first-child:not(.hero) { padding-top: 5.8rem; }
+  #contenido > .pagina > .seccion:first-child:not(.hero) { padding-top: 5.8rem; }
 }
 
 @media (max-width: 620px) {
   .seccion { padding-block: 3.9rem; }
-  #contenido > .seccion:first-child:not(.hero) { padding-top: 6.4rem; }
+  #contenido > .pagina > .seccion:first-child:not(.hero) { padding-top: 6.4rem; }
   .hero { padding-top: 6.4rem; padding-bottom: 3.9rem; }
   .titulo-seccion { margin-bottom: 2.5rem; }
   .contenedor { padding-inline: 1rem; }
@@ -2437,3 +2436,320 @@ button.prenda-mini:hover { transform: translateY(-2px); border-color: var(--lava
 /* Las etiquetas sobre fondos de marca no deben confundirse con el fondo. */
 .tono-lavanda .etiqueta.lavanda { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28); }
 .tono-rosa .etiqueta.rosa { box-shadow: inset 0 0 0 1px rgba(93, 70, 85, .16); }
+
+/* ============================================================
+   Acceso · contraseña, medidor y cuenta de administración
+   ============================================================ */
+
+.campo-clave { display: flex; align-items: center; gap: 0.5rem; }
+.campo-clave .entrada { flex: 1; min-width: 0; }
+
+.campo-clave-ojo {
+  flex: none;
+  border: 1px solid var(--línea);
+  background: var(--blanco);
+  color: var(--ciruela);
+  border-radius: var(--radio-completo);
+  padding: 0.45rem 0.8rem;
+  font-size: 0.75rem;
+  font-family: var(--fuente-texto);
+  cursor: pointer;
+}
+.campo-clave-ojo:hover { border-color: var(--lavanda); color: var(--lavanda); }
+
+.clave-fuerza {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: -0.4rem;
+  font-size: 0.8rem;
+  color: var(--ciruela);
+}
+.clave-fuerza-barras { display: inline-flex; gap: 4px; }
+.clave-fuerza-barras i {
+  width: 30px;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--niebla);
+  transition: background 0.2s ease;
+}
+.clave-fuerza[data-nivel='débil'] .clave-fuerza-barras i.activa { background: #c2606a; }
+.clave-fuerza[data-nivel='aceptable'] .clave-fuerza-barras i.activa { background: #c8a179; }
+.clave-fuerza[data-nivel='fuerte'] .clave-fuerza-barras i.activa { background: #7f9c74; }
+.campo-terminos.con-error span { color: #a8464f; }
+
+.auth-admin { display: grid; gap: 0.5rem; justify-items: center; margin-top: 0.4rem; }
+.auth-admin-separador {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--ciruela);
+  opacity: 0.55;
+  font-size: 0.78rem;
+}
+.auth-admin-separador::before,
+.auth-admin-separador::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--línea);
+}
+.auth-admin-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px dashed var(--línea);
+  background: transparent;
+  color: var(--ciruela);
+  border-radius: var(--radio-completo);
+  padding: 0.55rem 1rem;
+  font-family: var(--fuente-texto);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.auth-admin-boton:hover { border-color: var(--lavanda); background: rgba(104, 114, 170, 0.08); }
+.auth-admin small { font-size: 0.72rem; opacity: 0.6; }
+
+/* ============================================================
+   Botón flotante con QR
+   ============================================================ */
+
+.boton-qr {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  z-index: 55;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 56px;
+  width: 56px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radio-completo);
+  background: var(--ciruela);
+  color: var(--blanco);
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 18px 36px -18px rgba(45, 33, 50, 0.7);
+  transition: width 0.25s ease, background 0.2s ease;
+}
+.boton-qr svg { width: 26px; height: 26px; flex: none; }
+.boton-qr-texto {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: var(--fuente-texto);
+  font-size: 0.85rem;
+  transition: max-width 0.25s ease, opacity 0.2s ease;
+}
+.boton-qr-anillo {
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 2px solid rgba(104, 114, 170, 0.45);
+  animation: qr-pulso 2.6s ease-out infinite;
+  pointer-events: none;
+}
+.boton-qr:hover { background: var(--lavanda); }
+
+@media (hover: hover) and (min-width: 900px) {
+  .boton-qr:hover,
+  .boton-qr:focus-visible { width: 134px; padding: 0 1rem; }
+  .boton-qr:hover .boton-qr-texto,
+  .boton-qr:focus-visible .boton-qr-texto { max-width: 80px; opacity: 1; }
+}
+
+@keyframes qr-pulso {
+  0% { transform: scale(1); opacity: 0.8; }
+  70% { transform: scale(1.25); opacity: 0; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+
+.modal-qr { --ancho: 30rem; text-align: center; }
+.qr-cuerpo { display: grid; justify-items: center; gap: 0.9rem; }
+.qr-imagen {
+  width: min(280px, 70vw);
+  height: auto;
+  border-radius: var(--radio-sm);
+  border: 1px solid var(--línea);
+  background: var(--blanco);
+  padding: 0.4rem;
+}
+.qr-cargando { font-size: 0.9rem; opacity: 0.7; }
+.qr-materiales { justify-content: center; margin: 0; padding: 0; list-style: none; }
+.qr-acciones { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; }
+
+/* ============================================================
+   Micropágina de concientización
+   ============================================================ */
+
+.conciencia-contenedor { max-width: 780px; display: grid; gap: 1.7rem; }
+.conciencia-cabeza {
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+}
+.conciencia-mascota { width: min(160px, 42vw); }
+.conciencia-cabeza h1 {
+  font-family: var(--fuente-titulo);
+  font-size: clamp(1.6rem, 4.4vw, 2.4rem);
+  line-height: 1.15;
+}
+.conciencia-intro { max-width: 40rem; opacity: 0.82; }
+.conciencia-chips,
+.conciencia-filtro { justify-content: center; }
+.conciencia-fichas { display: grid; gap: 1.2rem; }
+
+.ficha-tela {
+  background: var(--blanco);
+  border: 1px solid var(--línea);
+  border-radius: var(--radio);
+  padding: clamp(1.1rem, 3vw, 1.8rem);
+  box-shadow: var(--sombra-suave);
+  display: grid;
+  gap: 0.9rem;
+}
+.ficha-tela-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+.ficha-tela-cabeza h2 { font-family: var(--fuente-titulo); font-size: 1.4rem; }
+.ficha-que { opacity: 0.86; font-size: 0.95rem; }
+.ficha-bloque h3,
+.ficha-ayuda h3 {
+  font-family: var(--fuente-titulo);
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+.ficha-bloque p { font-size: 0.9rem; opacity: 0.82; }
+.ficha-ayuda {
+  background: linear-gradient(140deg, rgba(104, 114, 170, 0.12), rgba(229, 196, 198, 0.22));
+  border-radius: var(--radio-sm);
+  padding: 1rem 1.1rem;
+}
+.ficha-ayuda p { font-family: var(--fuente-titulo); font-size: 1.05rem; line-height: 1.35; }
+.ficha-tela details { border-top: 1px solid var(--línea); padding-top: 0.7rem; }
+.ficha-tela summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ciruela);
+  list-style: none;
+}
+.ficha-tela summary::-webkit-details-marker { display: none; }
+.ficha-tela summary::after { content: '＋'; float: right; opacity: 0.6; }
+.ficha-tela details[open] summary::after { content: '−'; }
+.ficha-tela details ul,
+.ficha-tela details p {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.88rem;
+  opacity: 0.85;
+  display: grid;
+  gap: 0.35rem;
+}
+.ficha-fuentes {
+  border-top: 1px solid var(--línea);
+  padding-top: 0.7rem;
+  font-size: 0.78rem;
+  opacity: 0.78;
+}
+.ficha-fuentes ul { padding-left: 1.1rem; margin: 0.3rem 0; display: grid; gap: 0.2rem; }
+.ficha-fuentes a { color: var(--lavanda); text-decoration: underline; }
+.conciencia-estado {
+  display: grid;
+  justify-items: center;
+  gap: 0.8rem;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+.conciencia-estado-mascota { width: min(130px, 40vw); }
+.conciencia-cierre {
+  background: var(--bruma);
+  border-radius: var(--radio);
+  padding: clamp(1.4rem, 4vw, 2.2rem);
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 0.8rem;
+}
+.conciencia-cierre h2 { font-family: var(--fuente-titulo); font-size: clamp(1.2rem, 3vw, 1.6rem); }
+.conciencia-cierre-mascota { width: min(120px, 32vw); }
+.conciencia-cierre-acciones { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; }
+.conciencia-privacidad { font-size: 0.75rem; opacity: 0.6; text-align: center; }
+
+/* ============================================================
+   Asistente de IA
+   ============================================================ */
+
+.pregunta-ia {
+  background: var(--blanco);
+  border: 1px solid var(--línea);
+  border-radius: var(--radio);
+  padding: clamp(1.1rem, 3vw, 1.8rem);
+  box-shadow: var(--sombra-suave);
+  display: grid;
+  gap: 1rem;
+}
+.pregunta-ia-cabeza { display: flex; align-items: center; gap: 0.9rem; }
+.pregunta-ia-mascota { width: 64px; flex: none; }
+.pregunta-ia-cabeza h2 { font-family: var(--fuente-titulo); font-size: 1.35rem; }
+.pregunta-ia-cabeza p { font-size: 0.88rem; opacity: 0.8; }
+.pregunta-ia-sugerencias { gap: 0.45rem; }
+.pregunta-ia-form { display: grid; gap: 0.7rem; justify-items: start; }
+.pregunta-ia-form .campo { width: 100%; }
+.pregunta-ia-pensando { display: flex; align-items: center; gap: 0.7rem; font-size: 0.9rem; opacity: 0.8; }
+.pregunta-ia-pensando-mascota { width: 54px; }
+.pregunta-ia-respuesta {
+  background: var(--bruma);
+  border-radius: var(--radio-sm);
+  padding: 1rem 1.1rem;
+  display: grid;
+  gap: 0.5rem;
+  white-space: pre-wrap;
+}
+.pregunta-ia-aviso { font-size: 0.75rem; opacity: 0.65; }
+.pregunta-ia-fuentes { font-size: 0.82rem; }
+.pregunta-ia-fuentes a { color: var(--lavanda); text-decoration: underline; }
+
+/* ============================================================
+   Impacto dentro de las prendas y el chat
+   ============================================================ */
+
+.prenda-impacto { display: grid; gap: 0.5rem; }
+.prenda-impacto a { color: var(--lavanda); font-size: 0.85rem; text-decoration: underline; }
+.chat-impacto {
+  width: 100%;
+  margin-top: 0.7rem;
+  border: 1px dashed var(--línea);
+  background: transparent;
+  border-radius: var(--radio-sm);
+  padding: 0.5rem;
+  font-family: var(--fuente-texto);
+  font-size: 0.8rem;
+  color: var(--ciruela);
+  cursor: pointer;
+}
+.chat-impacto:hover { border-color: var(--lavanda); color: var(--lavanda); }
+
+/* Los avisos flotantes ocupan la esquina inferior izquierda. */
+.avisos { z-index: 60; }
+
+@media (max-width: 640px) {
+  .boton-qr { right: 0.9rem; bottom: calc(0.9rem + env(safe-area-inset-bottom)); }
+  .conciencia-contenedor { gap: 1.3rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boton-qr-anillo { animation: none; opacity: 0.5; }
+  .boton-qr,
+  .boton-qr-texto { transition: none; }
+}

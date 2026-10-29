@@ -32,7 +32,7 @@ export default function Admin({ seccion = 'resumen' }) {
   const {
     usuario, prendas, usuarios, pedidos, resenas, intercambios, reportes, buscarUsuario, buscarPrenda,
     fecha, precio, destacar, eliminarPrenda, alternarDisponible, moverPedido, resolverReporte,
-    marcarResena, suspenderUsuario, verificarUsuario, avisar, importarPrendas, notificaciones,
+    marcarResena, suspenderUsuario, verificarUsuario, avisar, importarPrendas, notificaciones, escaneosQr,
   } = useStore()
 
   const [vista, setVista] = useState(SECCIONES.some((s) => s.valor === seccion) ? seccion : 'resumen')
@@ -190,6 +190,11 @@ export default function Admin({ seccion = 'resumen' }) {
                   <Dato etiqueta="Intercambios activos" valor={intercambios.length} nota={`${pendientes} sin responder`} />
                   <Dato etiqueta="Envíos registrados" valor={pedidos.length} nota={`Ingresos ${precio(ingresos)}`} />
                   <Dato etiqueta="Usuarios activos" valor={activos} nota={`${usuarios.length} registrados`} />
+                  <Dato
+                    etiqueta="Escaneos del QR"
+                    valor={escaneosQr?.hoy ?? 0}
+                    nota={`${escaneosQr?.total ?? 0} desde el inicio`}
+                  />
                 </div>
 
                 <div className="datos-rejilla admin-envios-resumen">

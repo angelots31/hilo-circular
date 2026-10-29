@@ -9,7 +9,7 @@ export function firmarToken(usuario) {
   return jwt.sign(
     { id: usuario.id, rol: usuario.rol },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRA || '30d' },
+    { expiresIn: process.env.JWT_EXPIRA || '7d' },
   )
 }
 
@@ -28,7 +28,10 @@ export async function authOpcional(req, _res, next) {
   const payload = leerToken(req)
   if (payload?.id) {
     const { rows } = await q('SELECT * FROM usuarios WHERE id = $1', [payload.id])
-    if (rows[0]) req.usuario = rows[0]
+    const usuario = rows[0]
+    // Un cambio de contraseña invalida los tokens emitidos antes de ese momento.
+    const cambiada = usuario?.clave_cambiada ? Math.floor(new Date(usuario.clave_cambiada).getTime() / 1000) : 0
+    if (usuario && !(cambiada && Number(payload.iat) < cambiada)) req.usuario = usuario
   }
   next()
 }

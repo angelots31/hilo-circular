@@ -1,11 +1,12 @@
 -- ============================================================
 --  Hilo Circular · esquema de base de datos (PostgreSQL 13+)
 --  Ejecuta este archivo sobre una base vacía.
+--  © 2026 angelots · Hilo Circular
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-DROP TABLE IF EXISTS mensajes, notificaciones, reportes, pedidos, intercambios, resenas, favoritos, prendas, suscriptores, usuarios CASCADE;
+DROP TABLE IF EXISTS mensajes, notificaciones, reportes, pedidos, intercambios, resenas, favoritos, prendas, suscriptores, usuarios, telas, qr_visitas, ia_uso CASCADE;
 
 -- ---------------------------------------------------------- usuarios
 CREATE TABLE usuarios (
@@ -24,6 +25,9 @@ CREATE TABLE usuarios (
   intercambios  integer NOT NULL DEFAULT 0,
   desde         date NOT NULL DEFAULT CURRENT_DATE,
   estado        text NOT NULL DEFAULT 'activo' CHECK (estado IN ('activo', 'suspendido')),
+  clave_cambiada     timestamptz,
+  intentos_fallidos  integer NOT NULL DEFAULT 0,
+  bloqueado_hasta    timestamptz,
   creado        timestamptz NOT NULL DEFAULT now()
 );
 
@@ -49,6 +53,7 @@ CREATE TABLE prendas (
   creada       date NOT NULL DEFAULT CURRENT_DATE,
   fotos        text[] NOT NULL DEFAULT '{}',
   paleta       text[] NOT NULL DEFAULT '{}',
+  composicion  text[] NOT NULL DEFAULT '{}',
   audio        text
 );
 CREATE INDEX idx_prendas_dueno ON prendas(dueno_id);
@@ -153,4 +158,35 @@ CREATE INDEX idx_notificaciones_usuario ON notificaciones(usuario_id);
 CREATE TABLE suscriptores (
   email  text PRIMARY KEY,
   creado timestamptz NOT NULL DEFAULT now()
+);
+
+-- ---------------------------------------------------------- telas (wiki)
+-- Una ficha por material: es el contenido de la micropágina de concientización.
+CREATE TABLE telas (
+  slug            text PRIMARY KEY,
+  nombre          text NOT NULL,
+  familia         text NOT NULL CHECK (familia IN ('Natural', 'Sintética', 'Artificial', 'Mezcla')),
+  resumen         text NOT NULL,
+  impacto         text NOT NULL,
+  ayuda           text NOT NULL,
+  cuidado         text[] NOT NULL DEFAULT '{}',
+  reparar_reusar  text[] NOT NULL DEFAULT '{}',
+  fin_de_vida     text NOT NULL,
+  fuentes         jsonb NOT NULL DEFAULT '[]',
+  actualizado     date NOT NULL DEFAULT CURRENT_DATE
+);
+CREATE INDEX idx_telas_familia ON telas(familia);
+
+-- ---------------------------------------------------------- escaneos del QR
+-- Solo se guarda el día y el contador: nada personal.
+CREATE TABLE qr_visitas (
+  dia     date PRIMARY KEY DEFAULT CURRENT_DATE,
+  conteo  integer NOT NULL DEFAULT 0
+);
+
+-- ---------------------------------------------------------- uso del asistente
+-- Tope diario global para controlar el gasto de la IA.
+CREATE TABLE ia_uso (
+  dia        date PRIMARY KEY DEFAULT CURRENT_DATE,
+  preguntas  integer NOT NULL DEFAULT 0
 );

@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "API REST de Hilo Circular: autenticación, catálogo, intercambios, envíos y moderación.",
+  "author": "angelots",
   "engines": {
     "node": ">=20"
   },
@@ -15,14 +16,18 @@
     "db:setup": "node scripts/setup-db.js",
     "db:setup:demo": "node scripts/setup-db.js --demo",
     "db:limpiar": "node scripts/limpiar-datos.js",
+    "db:migrar": "node scripts/migrar.js",
     "admin:crear": "node scripts/crear-admin.js",
+    "clave:restablecer": "node scripts/restablecer-clave.js",
     "test": "node --test"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.12.0"
   },

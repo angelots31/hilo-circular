@@ -23,7 +23,12 @@ export function usuarioSeguro(fila, propio = true) {
   const base = propio
     ? fila
     : Object.fromEntries(Object.entries(fila).filter(([k]) => CAMPOS_USUARIO_PUBLICO.includes(k)))
-  const { clave_hash: _omitido, ...resto } = base
+  // Nunca viajan al cliente: hash de la clave ni el estado del bloqueo por intentos.
+  const {
+    clave_hash: _hash, clave_cambiada: _cambiada,
+    intentos_fallidos: _intentos, bloqueado_hasta: _bloqueo,
+    ...resto
+  } = base
   return camelizar(resto)
 }
 

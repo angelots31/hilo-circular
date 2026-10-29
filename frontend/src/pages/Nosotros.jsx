@@ -1,5 +1,5 @@
 import Mascot from '../components/Mascot.jsx'
-import { Aparece, Avatar, Boton, Etiqueta, Seccion, TituloSeccion } from '../components/ui.jsx'
+import { Aparece, Avatar, Boton, Cifra, Etiqueta, Seccion, TituloSeccion } from '../components/ui.jsx'
 import { EQUIPO, ESLOGAN, FORMAS, ODS, PUBLICO, QUIENES_SOMOS, REFERENTES } from '../lib/seed.js'
 
 const DESTELLO = 'M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z'
@@ -59,7 +59,7 @@ export default function Nosotros() {
               {HALLAZGOS.map((h, i) => (
                 <Aparece key={h.valor} retraso={i * 70}>
                   <article className="hallazgo">
-                    <b>{h.valor}</b>
+                    <b><Cifra valor={h.valor} /></b>
                     <p>{h.texto}</p>
                   </article>
                 </Aparece>

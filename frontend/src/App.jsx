@@ -1,8 +1,11 @@
 import { useEffect } from 'react'
+import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, m } from 'motion/react'
 import { StoreProvider, useStore } from './lib/store.jsx'
 import { destinoVolver, navigate, useRoute } from './lib/router.jsx'
+import { activarScrollSuave, subirAlInicio } from './lib/scroll.js'
 import { Fondo, ProgresoLectura, CursorHueco } from './components/Chrome.jsx'
 import { Avisos, Encabezado, Pie } from './components/Layout.jsx'
+import { BotonQr } from './components/BotonQr.jsx'
 import { Boton, EstadoVacio, Seccion } from './components/ui.jsx'
 
 import Home from './pages/Home.jsx'
@@ -18,6 +21,7 @@ import Intercambios from './pages/Intercambios.jsx'
 import Panel from './pages/Panel.jsx'
 import Admin from './pages/Admin.jsx'
 import NoEncontrada from './pages/NoEncontrada.jsx'
+import Conciencia from './pages/Conciencia.jsx'
 
 /** Puerta de entrada para las zonas que necesitan sesión; al entrar vuelve a donde estabas. */
 function Acceso({ titulo, texto, volver = '' }) {
@@ -59,14 +63,14 @@ function Redirigir({ a }) {
   return null
 }
 
-function Rutas() {
-  const { segments, query } = useRoute()
+/** La ruta llega por props para que la página que sale conserve la anterior. */
+function Rutas({ segments, query }) {
   const { usuario, esAdmin } = useStore()
   const [primero, segundo] = segments
 
-  // Cada cambio de ruta vuelve al inicio de la página.
+  // Cada cambio de ruta vuelve al inicio de la página (también con Lenis).
   useEffect(() => {
-    scrollTo({ top: 0, behavior: 'auto' })
+    subirAlInicio()
   }, [segments.join('/')])
 
   // La clave fuerza el remontaje cuando cambian los parámetros de la dirección.
@@ -87,6 +91,9 @@ function Rutas() {
       return <Domicilio key={clave} />
     case 'nosotros':
       return <Nosotros key={clave} />
+    case 'conciencia':
+      // Micropágina pública del QR: no pide sesión y funciona en el celular.
+      return <Conciencia key={clave} />
     case 'entrar':
     case 'registro':
       // Quien ya tiene sesión no vuelve a ver el formulario.
@@ -110,7 +117,7 @@ function Rutas() {
       if (esAdmin) return <Redirigir a="/admin" />
       return <Panel key={clave} seccion={query.get('seccion') ?? 'resumen'} />
     case 'admin':
-      if (!usuario) return        <Acceso key={clave} volver="/admin" titulo="Zona de administración" texto="Este espacio es solo para el equipo de Hilo Circular: moderación, envíos y métricas de la comunidad." />
+      if (!usuario) return <Acceso key={clave} volver="/admin" titulo="Zona de administración" texto="Este espacio es solo para el equipo de Hilo Circular: moderación, envíos y métricas de la comunidad." />
       if (!esAdmin) return <SinPermiso key={clave} />
       return <Admin key={clave} seccion={segundo ?? 'resumen'} />
     default:
@@ -118,13 +125,32 @@ function Rutas() {
   }
 }
 
+/** Fundido y desplazamiento corto al cambiar de página. */
+function Pagina({ clave, children }) {
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <m.div
+        key={clave}
+        className="pagina"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+      >
+        {children}
+      </m.div>
+    </AnimatePresence>
+  )
+}
+
 /** Los paneles y el acceso van a pantalla completa: sin navbar ni footer. */
 function Estructura() {
-  const { segments } = useRoute()
+  const { segments, query } = useRoute()
   const { usuario, esAdmin } = useStore()
   const [primero] = segments
   const enPanel = Boolean((primero === 'panel' && usuario && !esAdmin) || (primero === 'admin' && esAdmin))
   const enAcceso = primero === 'entrar' || primero === 'registro'
+  const clave = `${segments.join('/')}?${query.toString()}`
 
   useEffect(() => {
     document.body.classList.toggle('modo-panel', enPanel)
@@ -141,7 +167,9 @@ function Estructura() {
         <CursorHueco />
         <a className="saltar" href="#contenido">Saltar al contenido</a>
         <main id="contenido">
-          <Rutas />
+          <Pagina clave={clave}>
+            <Rutas segments={segments} query={query} />
+          </Pagina>
         </main>
         <Avisos />
       </>
@@ -156,18 +184,28 @@ function Estructura() {
       <a className="saltar" href="#contenido">Saltar al contenido</a>
       <Encabezado />
       <main id="contenido">
-        <Rutas />
+        <Pagina clave={clave}>
+          <Rutas segments={segments} query={query} />
+        </Pagina>
       </main>
       <Pie />
+      <BotonQr />
       <Avisos />
     </>
   )
 }
 
 export default function Aplicacion() {
+  // Scroll suave con inercia; se apaga solo si el sistema pide reducir movimiento.
+  useEffect(() => activarScrollSuave(), [])
+
   return (
-    <StoreProvider>
-      <Estructura />
-    </StoreProvider>
+    <LazyMotion features={domAnimation} strict>
+      <MotionConfig reducedMotion="user">
+        <StoreProvider>
+          <Estructura />
+        </StoreProvider>
+      </MotionConfig>
+    </LazyMotion>
   )
 }
