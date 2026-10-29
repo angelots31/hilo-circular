@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ChatIntercambio from '../components/ChatIntercambio.jsx'
 import GrabadoraAudio from '../components/GrabadoraAudio.jsx'
 import DetallePrenda from '../components/DetallePrenda.jsx'
@@ -39,6 +39,10 @@ export default function Panel({ seccion = 'resumen' }) {
   } = useStore()
 
   const [vista, setVista] = useState(SECCIONES.some((s) => s.valor === seccion) ? seccion : 'resumen')
+  // La estructura ya no se remonta entre secciones: seguimos el cambio de URL.
+  useEffect(() => {
+    if (SECCIONES.some((s) => s.valor === seccion)) setVista(seccion)
+  }, [seccion])
   const [perfil, setPerfil] = useState({ ...usuario, direccion: usuario.direccion ?? '' })
   const [respuesta, setRespuesta] = useState({ id: '', texto: '' })
   const [preferencias, setPreferencias] = useState(() => {

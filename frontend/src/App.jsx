@@ -73,8 +73,10 @@ function Rutas({ segments, query }) {
     subirAlInicio()
   }, [segments.join('/')])
 
-  // La clave fuerza el remontaje cuando cambian los parámetros de la dirección.
-  const clave = `${segments.join('/')}?${query.toString()}`
+  // En los paneles el cambio de sección solo repinta el contenido: la clave se
+  // mantiene para que la barra lateral no se vuelva a montar con una animación.
+  const enPanel = primero === 'panel' || primero === 'admin'
+  const clave = enPanel ? primero : `${segments.join('/')}?${query.toString()}`
 
   switch (primero) {
     case undefined:
@@ -150,22 +152,20 @@ function Estructura() {
   const [primero] = segments
   const enPanel = Boolean((primero === 'panel' && usuario && !esAdmin) || (primero === 'admin' && esAdmin))
   const enAcceso = primero === 'entrar' || primero === 'registro'
-  // La página del QR es independiente: sin navbar, sin pie y sin botón flotante.
-  const enConciencia = primero === 'conciencia'
-  const clave = `${segments.join('/')}?${query.toString()}`
+  const enPanelRuta = primero === 'panel' || primero === 'admin'
+  // La sección del panel vive en la URL, pero no remonta la estructura.
+  const clave = enPanelRuta ? primero : `${segments.join('/')}?${query.toString()}`
 
   useEffect(() => {
     document.body.classList.toggle('modo-panel', enPanel)
     document.body.classList.toggle('modo-acceso', enAcceso)
-    document.body.classList.toggle('modo-conciencia', enConciencia)
     return () => {
       document.body.classList.remove('modo-panel')
       document.body.classList.remove('modo-acceso')
-      document.body.classList.remove('modo-conciencia')
     }
-  }, [enPanel, enAcceso, enConciencia])
+  }, [enPanel, enAcceso])
 
-  if (enPanel || enAcceso || enConciencia) {
+  if (enPanel || enAcceso) {
     return (
       <>
         <a className="saltar" href="#contenido">Saltar al contenido</a>

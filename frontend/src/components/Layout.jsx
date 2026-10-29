@@ -85,15 +85,26 @@ export function Encabezado() {
         </span>
       </a>
 
-      <nav className="nav-principal" aria-label="Navegación principal">
-        {ENLACES.map((e) => (
-          <a key={e.to} href={href(e.to)} className={path === e.to ? 'activo' : ''}>
-            {e.texto}
-          </a>
-        ))}
-      </nav>
+      {path === '/conciencia' ? (
+        <nav className="nav-principal" aria-label="Volver al inicio">
+          <a href={href('/')} className="volver-inicio">← Volver al inicio</a>
+        </nav>
+      ) : (
+        <nav className="nav-principal" aria-label="Navegación principal">
+          {ENLACES.map((e) => (
+            <a key={e.to} href={href(e.to)} className={path === e.to ? 'activo' : ''}>
+              {e.texto}
+            </a>
+          ))}
+        </nav>
+      )}
 
       <div className="nav-acciones">
+        {/* En móvil la navegación principal se oculta: el regreso queda a mano. */}
+        {path === '/conciencia' && (
+          <a className="volver-inicio-movil clicable" href={href('/')} aria-label="Volver al inicio">← Inicio</a>
+        )}
+
         {usuario && <button
           className="campana clicable"
           aria-label={`Notificaciones: ${sinLeer} sin leer`}
@@ -145,16 +156,21 @@ export function Encabezado() {
                     <small>{usuario.email}</small>
                   </span>
                 </p>
-                <a href={href('/panel')}>Mi panel</a>
-                <a href={href('/subir')}>Subir una prenda</a>
-                <a href={href('/intercambios')}>Mis intercambios</a>
-                <a href={href('/panel?seccion=envios')}>Mis envíos</a>
-                {esAdmin && (
+                {/* Para el equipo, «Mi panel» redirige al panel de administración:
+                    mostramos una sola entrada para no duplicar el mismo destino. */}
+                {esAdmin ? (
                   <a href={href('/admin')} className="menu-sesion-admin">
                     Panel de administración
                     <Etiqueta tono="lavanda">Admin</Etiqueta>
                   </a>
+                ) : (
+                  <>
+                    <a href={href('/panel')}>Mi panel</a>
+                    <a href={href('/panel?seccion=envios')}>Mis envíos</a>
+                  </>
                 )}
+                <a href={href('/subir')}>Subir una prenda</a>
+                <a href={href('/intercambios')}>Mis intercambios</a>
                 <button onClick={salir}>Cerrar sesión</button>
               </div>
             )}
@@ -178,7 +194,7 @@ export function Encabezado() {
           <div className="nav-movil-pie">
             {usuario ? (
               <>
-                <Boton to="/panel" variante="claro">Mi panel</Boton>
+                <Boton to={esAdmin ? '/admin' : '/panel'} variante="claro">{esAdmin ? 'Panel de administración' : 'Mi panel'}</Boton>
                 <Boton onClick={salir} variante="fantasma">Cerrar sesión</Boton>
               </>
             ) : (

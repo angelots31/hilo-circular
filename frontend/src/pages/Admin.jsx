@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import DetallePrenda from '../components/DetallePrenda.jsx'
 import PanelShell from '../components/PanelShell.jsx'
 import Mascot from '../components/Mascot.jsx'
@@ -36,6 +36,10 @@ export default function Admin({ seccion = 'resumen' }) {
   } = useStore()
 
   const [vista, setVista] = useState(SECCIONES.some((s) => s.valor === seccion) ? seccion : 'resumen')
+  // La estructura ya no se remonta entre secciones: seguimos el cambio de URL.
+  useEffect(() => {
+    if (SECCIONES.some((s) => s.valor === seccion)) setVista(seccion)
+  }, [seccion])
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('todos')
   const [filtroEnvios, setFiltroEnvios] = useState('todos')

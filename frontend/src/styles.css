@@ -229,6 +229,19 @@ button { font-family: inherit; }
 .nav-principal a.activo { background: var(--lavanda); color: #fff; }
 
 .nav-acciones { display: flex; align-items: center; gap: 0.6rem; position: relative; }
+.volver-inicio-movil { display: none; }
+@media (max-width: 860px) {
+  .volver-inicio-movil {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--línea);
+    border-radius: var(--radio-completo);
+    background: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+}
 
 .campana {
   position: relative;
@@ -531,15 +544,8 @@ button { font-family: inherit; }
 @keyframes subir { from { opacity: 0; transform: translateY(6vh) scale(0.94); } }
 
 .hero-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 1rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--línea); }
-.hero-dato b { display: block; font: 800 clamp(1.6rem, 3vw, 2.3rem) var(--fuente-titulo); letter-spacing: -0.04em; }
-.hero-dato span { font-size: 0.85rem; opacity: 0.7; }
-
-.hero-formas { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
-.destello { position: absolute; fill: var(--ciruela); animation: girar-destello 16s linear infinite; }
-.destello.d1 { width: clamp(2rem, 4vw, 3.6rem); top: 14%; left: 46%; }
-.destello.d2 { width: clamp(1.4rem, 3vw, 2.4rem); top: 62%; left: 6%; fill: var(--lavanda); animation-duration: 22s; }
-.destello.d3 { width: clamp(2.4rem, 5vw, 4.4rem); top: 30%; right: 4%; fill: var(--rosa); animation-duration: 12s; }
-@keyframes girar-destello { to { transform: rotate(360deg); } }
+.hero-dato b { display: block; font: 800 clamp(2.1rem, 3.8vw, 3rem) var(--fuente-titulo); letter-spacing: -0.04em; line-height: 1.05; }
+.hero-dato span { font-size: 0.92rem; opacity: 0.74; }
 
 .trama {
   position: absolute;
@@ -1277,12 +1283,6 @@ body.modo-panel { background: #f4f2f8; }
 @keyframes flota-adorno { from { transform: translate3d(0, -14px, 0) rotate(-4deg); } to { transform: translate3d(0, 18px, 0) rotate(6deg); } }
 @keyframes brillo-adorno { 0%, 100% { transform: scale(0.85) rotate(0deg); } 50% { transform: scale(1.18) rotate(28deg); } }
 
-.hero-formas .h-t1 { width: clamp(16rem, 34vw, 31rem); height: clamp(16rem, 34vw, 31rem); right: -6vw; top: -3rem; }
-.hero-formas .h-t2 { width: clamp(7rem, 15vw, 13rem); height: clamp(7rem, 15vw, 13rem); left: 40%; bottom: -2.5rem; }
-.hero-formas .h-p { width: clamp(9rem, 18vw, 16rem); height: clamp(9rem, 18vw, 16rem); left: -3rem; bottom: 6%; }
-.hero-formas .h-e1 { width: clamp(2.6rem, 5vw, 4.6rem); height: clamp(2.6rem, 5vw, 4.6rem); left: 3%; top: 22%; }
-.hero-formas .h-e2 { width: clamp(2rem, 4vw, 3.4rem); height: clamp(2rem, 4vw, 3.4rem); right: 36%; top: 12%; animation-delay: -3s; }
-
 .ceja::before {
   content: ''; display: inline-block; width: 0.95em; height: 0.95em; margin-right: 0.5em; vertical-align: -0.1em;
   background: conic-gradient(from 30deg, #fff, #6872aa, #e5c4c6, #fff, #2f2d55, #6872aa);
@@ -1753,7 +1753,7 @@ textarea:focus-visible {
 
 @media (max-width: 900px) {
   /* El fondo animado y los adornos son decorativos: fuera del móvil. */
-  .fondo, .grano, .adornos, .hero-formas, .trama { display: none !important; }
+  .fondo, .grano, .adornos, .trama { display: none !important; }
 
   /* Sin blur de fondo: evita repintados costosos al hacer scroll. */
   .tono-oscuro, .tono-lavanda { backdrop-filter: none; }
@@ -2581,23 +2581,18 @@ button.prenda-mini:hover { transform: translateY(-2px); border-color: var(--lava
    Micropágina de concientización
    ============================================================ */
 
-.conciencia-contenedor { max-width: 780px; display: grid; gap: 1.7rem; }
-.conciencia-cabeza {
-  text-align: center;
-  display: grid;
-  justify-items: center;
-  gap: 0.6rem;
-}
-.conciencia-mascota { width: min(160px, 42vw); }
-.conciencia-cabeza h1 {
+.conciencia-hero .hero-rejilla { min-height: min(64vh, 620px); }
+.conciencia-hero h1 { font-size: clamp(2.4rem, 5.2vw, 4.2rem); }
+.conciencia-chips { justify-content: flex-start; margin-bottom: 1.6rem; }
+.conciencia-filtro { justify-content: center; margin-bottom: 1.6rem; }
+.conciencia-fichas { display: grid; gap: 1.2rem; max-width: 860px; margin-inline: auto; }
+.conciencia-subtitulo {
   font-family: var(--fuente-titulo);
-  font-size: clamp(1.6rem, 4.4vw, 2.4rem);
-  line-height: 1.15;
+  font-size: clamp(1.25rem, 2.6vw, 1.7rem);
+  margin-bottom: 1.1rem;
 }
-.conciencia-intro { max-width: 40rem; opacity: 0.82; }
-.conciencia-chips,
-.conciencia-filtro { justify-content: center; }
-.conciencia-fichas { display: grid; gap: 1.2rem; }
+.conciencia-reco-prendas { font-size: 0.85rem; opacity: 0.8; margin-top: 0.7rem; }
+.conciencia-reco-prendas a { color: var(--lavanda); text-decoration: underline; }
 
 .ficha-tela {
   background: var(--blanco);
@@ -2679,51 +2674,6 @@ button.prenda-mini:hover { transform: translateY(-2px); border-color: var(--lava
 .conciencia-cierre-acciones { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; }
 .conciencia-privacidad { font-size: 0.75rem; opacity: 0.6; text-align: center; }
 
-/* La página del QR vive sola: barra mínima, sin navbar ni pie de página. */
-body.modo-conciencia { background: var(--bruma); }
-#contenido > .pagina > .seccion.conciencia-pagina:first-child { padding-top: 0; }
-.conciencia-pagina { min-height: 100svh; }
-.conciencia-barra {
-  position: relative;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  width: min(780px, calc(100% - 2rem));
-  margin: 0 auto 2rem;
-  padding: 0.9rem 0;
-  border-bottom: 1px solid var(--línea);
-}
-.conciencia-marca { display: flex; align-items: center; gap: 0.6rem; }
-.conciencia-marca img { border-radius: 10px; }
-.conciencia-marca span { display: grid; line-height: 1.15; }
-.conciencia-marca b { font-size: 0.98rem; letter-spacing: -0.03em; }
-.conciencia-marca small { font-size: 0.7rem; opacity: 0.65; }
-.conciencia-barra-acciones { display: flex; align-items: center; gap: 0.9rem; font-size: 0.85rem; }
-.conciencia-hola { opacity: 0.7; }
-.conciencia-enlace { font-weight: 600; color: var(--ciruela); text-decoration: underline; text-underline-offset: 3px; }
-.conciencia-closet {
-  background: var(--blanco);
-  border: 1px solid var(--línea);
-  border-radius: var(--radio);
-  padding: clamp(1.1rem, 3vw, 1.6rem);
-  display: grid;
-  gap: 0.9rem;
-}
-.conciencia-closet h2 { font-family: var(--fuente-titulo); font-size: 1.15rem; }
-.conciencia-closet-lista { display: flex; flex-wrap: wrap; gap: 0.55rem; list-style: none; padding: 0; margin: 0; }
-.conciencia-closet-lista li {
-  display: grid;
-  gap: 0.1rem;
-  padding: 0.5rem 0.85rem;
-  border-radius: var(--radio-sm);
-  background: var(--bruma);
-  border: 1px solid var(--línea);
-}
-.conciencia-closet-lista b { font-size: 0.88rem; }
-.conciencia-closet-lista small { font-size: 0.72rem; opacity: 0.7; }
 .conciencia-nota {
   background: rgba(104, 114, 170, 0.1);
   border: 1px dashed var(--línea);
@@ -2740,7 +2690,6 @@ body.modo-conciencia { background: var(--bruma); }
 .ficha-closet h3 { font-family: var(--fuente-titulo); font-size: 0.95rem; color: var(--ciruela); }
 .ficha-closet ul { display: grid; gap: 0.25rem; padding-left: 1.1rem; margin: 0; font-size: 0.88rem; }
 .ficha-closet a { color: var(--lavanda); text-decoration: underline; }
-.conciencia-pie { justify-self: center; font-size: 0.85rem; font-weight: 600; color: var(--ciruela); text-decoration: underline; text-underline-offset: 3px; }
 
 /* ============================================================
    Asistente de IA
@@ -2801,7 +2750,6 @@ body.modo-conciencia { background: var(--bruma); }
 
 @media (max-width: 640px) {
   .boton-qr { right: 0.9rem; bottom: calc(0.9rem + env(safe-area-inset-bottom)); }
-  .conciencia-contenedor { gap: 1.3rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

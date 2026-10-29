@@ -19,4 +19,4 @@ export function urlConciencia(materiales = [], { qr = false } = {}) {
 }
 
 export const esRutaSinQr = (path = '') =>
-  ['/entrar', '/registro', '/panel', '/admin'].some((ruta) => path === ruta || path.startsWith(`${ruta}/`))
+  ['/entrar', '/registro', '/panel', '/admin', '/conciencia'].some((ruta) => path === ruta || path.startsWith(`${ruta}/`))

@@ -1,6 +1,4 @@
-import { useState } from 'react'
 import Mascot from '../components/Mascot.jsx'
-import { Estrella, Puntos, Trebol } from '../components/Adornos.jsx'
 import PrendaCard from '../components/PrendaCard.jsx'
 import { Aparece, Boton, Cifra, EstadoVacio, Seccion, TituloSeccion } from '../components/ui.jsx'
 import { useStore } from '../lib/store.jsx'
@@ -8,36 +6,17 @@ import { CIFRAS, ESLOGAN, FORMAS, PASOS, VOCES } from '../lib/seed.js'
 
 const DESTELLO = 'M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z'
 
-function Destello({ className }) {
-  return (
-    <svg className={`destello ${className}`} viewBox="0 0 24 24" aria-hidden="true">
-      <path d={DESTELLO} />
-    </svg>
-  )
-}
-
 export default function Home() {
   const { prendas, usuario } = useStore()
-  const [ligero] = useState(() => typeof matchMedia === 'function' && matchMedia('(max-width: 900px)').matches)
   const destacadas = prendas.filter((p) => p.destacada && p.disponible).slice(0, 3)
   const ultimas = [...prendas].sort((a, b) => (a.creada < b.creada ? 1 : -1)).slice(0, 6)
 
   return (
     <>
       <Seccion tono="claro" className="hero">
+        {/* Las figuras del hero ya las aporta el fondo global (Fondo): aqui no
+            se duplican, para no cargar SVG animados de mas. */}
         <div className="trama" aria-hidden="true" />
-        {!ligero && (
-          <div className="hero-formas" aria-hidden="true">
-            <Destello className="d1" />
-            <Destello className="d2" />
-            <Destello className="d3" />
-            <span className="adorno trebol h-t1"><Trebol n={1} /></span>
-            <span className="adorno trebol h-t2"><Trebol n={2} /></span>
-            <span className="adorno puntos h-p"><Puntos /></span>
-            <span className="adorno estrella h-e1"><Estrella /></span>
-            <span className="adorno estrella h-e2"><Estrella /></span>
-          </div>
-        )}
         <div className="contenedor">
           <div className="hero-rejilla">
             <div>
