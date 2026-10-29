@@ -96,7 +96,7 @@ export default function GrabadoraAudio({ id, onGrabar, avisar, className = 'solt
         type="button"
         id={id}
         className={`${className} grabando`}
-        data-cursor="detener grabación"
+       
         onClick={detener}
       >
         <b><i className="grab-punto" aria-hidden="true" /> Grabando… {reloj(segundos)}</b>
@@ -106,7 +106,7 @@ export default function GrabadoraAudio({ id, onGrabar, avisar, className = 'solt
   }
 
   return (
-    <button type="button" id={id} className={className} data-cursor="grabar audio" onClick={empezar}>
+    <button type="button" id={id} className={className} onClick={empezar}>
       <b>🎙️ Graba un audio con los detalles</b>
       <small>haz clic para grabar con tu micrófono · hasta {SEGUNDOS_MAXIMOS} segundos · completamente opcional</small>
     </button>

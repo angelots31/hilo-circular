@@ -3,7 +3,7 @@ import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, m } from 'moti
 import { StoreProvider, useStore } from './lib/store.jsx'
 import { destinoVolver, navigate, useRoute } from './lib/router.jsx'
 import { activarScrollSuave, subirAlInicio } from './lib/scroll.js'
-import { Fondo, ProgresoLectura, CursorHueco } from './components/Chrome.jsx'
+import { Fondo, ProgresoLectura } from './components/Chrome.jsx'
 import { Avisos, Encabezado, Pie } from './components/Layout.jsx'
 import { BotonQr } from './components/BotonQr.jsx'
 import { Boton, EstadoVacio, Seccion } from './components/ui.jsx'
@@ -150,21 +150,24 @@ function Estructura() {
   const [primero] = segments
   const enPanel = Boolean((primero === 'panel' && usuario && !esAdmin) || (primero === 'admin' && esAdmin))
   const enAcceso = primero === 'entrar' || primero === 'registro'
+  // La página del QR es independiente: sin navbar, sin pie y sin botón flotante.
+  const enConciencia = primero === 'conciencia'
   const clave = `${segments.join('/')}?${query.toString()}`
 
   useEffect(() => {
     document.body.classList.toggle('modo-panel', enPanel)
     document.body.classList.toggle('modo-acceso', enAcceso)
+    document.body.classList.toggle('modo-conciencia', enConciencia)
     return () => {
       document.body.classList.remove('modo-panel')
       document.body.classList.remove('modo-acceso')
+      document.body.classList.remove('modo-conciencia')
     }
-  }, [enPanel, enAcceso])
+  }, [enPanel, enAcceso, enConciencia])
 
-  if (enPanel || enAcceso) {
+  if (enPanel || enAcceso || enConciencia) {
     return (
       <>
-        <CursorHueco />
         <a className="saltar" href="#contenido">Saltar al contenido</a>
         <main id="contenido">
           <Pagina clave={clave}>
@@ -178,7 +181,6 @@ function Estructura() {
 
   return (
     <>
-      <CursorHueco />
       <Fondo />
       <ProgresoLectura />
       <a className="saltar" href="#contenido">Saltar al contenido</a>

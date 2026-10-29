@@ -346,7 +346,7 @@ export default function Auth({ modo = 'entrar' }) {
               </>
             )}
 
-            <Boton tamano="lg" type="submit" className="bloque" disabled={enviando} data-cursor={esRegistro ? 'crear cuenta' : 'entrar'}>
+            <Boton tamano="lg" type="submit" className="bloque" disabled={enviando}>
               {enviando ? 'Un momento…' : esRegistro ? 'Crear mi cuenta' : 'Iniciar sesión'}
             </Boton>
 
@@ -372,7 +372,7 @@ export default function Auth({ modo = 'entrar' }) {
                   className="auth-admin-boton"
                   onClick={entrarComoAdmin}
                   disabled={enviando}
-                  data-cursor="admin"
+                 
                 >
                   <span aria-hidden="true">⚙</span> Entrar con la cuenta de administración
                 </button>

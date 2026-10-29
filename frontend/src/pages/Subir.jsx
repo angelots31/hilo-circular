@@ -258,7 +258,7 @@ export default function Subir() {
                     onClick={() => entradaArchivos.current?.click()}
                     role="button"
                     tabIndex={0}
-                    data-cursor="subir fotos"
+                   
                   >
                     <b>Arrastra tus fotos aquí</b>
                     <small>o haz clic para elegirlas desde tu equipo · JPG o PNG</small>

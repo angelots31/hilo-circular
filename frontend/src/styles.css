@@ -1332,13 +1332,6 @@ body { font-size: 0.97rem; line-height: 1.6; }
 .perfil-ejemplos b { font-size: .82rem; overflow-wrap: anywhere; }
 .perfil-ejemplos small, .perfil-comunidad-nota { font-size: .76rem; opacity: .7; }
 
-/* Cursor hueco para escritorio; el cursor nativo se conserva en pantallas táctiles. */
-@media (pointer: fine) {
-  html.cursor-hueco-activo, html.cursor-hueco-activo body, html.cursor-hueco-activo body * { cursor: none !important; }
-  .cursor-hueco { position: fixed; z-index: 10000; width: 9px; height: 9px; border: 1.5px solid #5d4655; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; background: transparent; box-shadow: 0 0 0 1px rgba(255,255,255,.78); transition: width .14s ease, height .14s ease, border-color .14s ease; }
-  .cursor-hueco.encima { width: 16px; height: 16px; border-color: #6872aa; }
-}
-
 /* CTA y controles nunca se salen de su espacio en paneles y móviles. */
 .boton { max-width: 100%; min-height: 2.6rem; justify-content: center; text-align: center; white-space: normal; line-height: 1.25; }
 .boton > span { min-width: 0; }
@@ -2685,6 +2678,69 @@ button.prenda-mini:hover { transform: translateY(-2px); border-color: var(--lava
 .conciencia-cierre-mascota { width: min(120px, 32vw); }
 .conciencia-cierre-acciones { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; }
 .conciencia-privacidad { font-size: 0.75rem; opacity: 0.6; text-align: center; }
+
+/* La página del QR vive sola: barra mínima, sin navbar ni pie de página. */
+body.modo-conciencia { background: var(--bruma); }
+#contenido > .pagina > .seccion.conciencia-pagina:first-child { padding-top: 0; }
+.conciencia-pagina { min-height: 100svh; }
+.conciencia-barra {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  width: min(780px, calc(100% - 2rem));
+  margin: 0 auto 2rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--línea);
+}
+.conciencia-marca { display: flex; align-items: center; gap: 0.6rem; }
+.conciencia-marca img { border-radius: 10px; }
+.conciencia-marca span { display: grid; line-height: 1.15; }
+.conciencia-marca b { font-size: 0.98rem; letter-spacing: -0.03em; }
+.conciencia-marca small { font-size: 0.7rem; opacity: 0.65; }
+.conciencia-barra-acciones { display: flex; align-items: center; gap: 0.9rem; font-size: 0.85rem; }
+.conciencia-hola { opacity: 0.7; }
+.conciencia-enlace { font-weight: 600; color: var(--ciruela); text-decoration: underline; text-underline-offset: 3px; }
+.conciencia-closet {
+  background: var(--blanco);
+  border: 1px solid var(--línea);
+  border-radius: var(--radio);
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+  display: grid;
+  gap: 0.9rem;
+}
+.conciencia-closet h2 { font-family: var(--fuente-titulo); font-size: 1.15rem; }
+.conciencia-closet-lista { display: flex; flex-wrap: wrap; gap: 0.55rem; list-style: none; padding: 0; margin: 0; }
+.conciencia-closet-lista li {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radio-sm);
+  background: var(--bruma);
+  border: 1px solid var(--línea);
+}
+.conciencia-closet-lista b { font-size: 0.88rem; }
+.conciencia-closet-lista small { font-size: 0.72rem; opacity: 0.7; }
+.conciencia-nota {
+  background: rgba(104, 114, 170, 0.1);
+  border: 1px dashed var(--línea);
+  border-radius: var(--radio);
+  padding: 1rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+.conciencia-nota p { font-size: 0.9rem; max-width: 34rem; opacity: 0.85; }
+.ficha-closet { display: grid; gap: 0.4rem; border-top: 1px solid var(--línea); padding-top: 0.7rem; }
+.ficha-closet h3 { font-family: var(--fuente-titulo); font-size: 0.95rem; color: var(--ciruela); }
+.ficha-closet ul { display: grid; gap: 0.25rem; padding-left: 1.1rem; margin: 0; font-size: 0.88rem; }
+.ficha-closet a { color: var(--lavanda); text-decoration: underline; }
+.conciencia-pie { justify-self: center; font-size: 0.85rem; font-weight: 600; color: var(--ciruela); text-decoration: underline; text-underline-offset: 3px; }
 
 /* ============================================================
    Asistente de IA

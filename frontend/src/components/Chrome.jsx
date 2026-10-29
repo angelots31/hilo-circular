@@ -137,35 +137,3 @@ export function ProgresoLectura() {
     </div>
   )
 }
-
-
-/** Cursor circular hueco para equipos con puntero; no altera la navegación táctil. */
-export function CursorHueco() {
-  useEffect(() => {
-    if (!matchMedia('(pointer: fine)').matches) return
-    const cursor = document.createElement('span')
-    cursor.className = 'cursor-hueco'
-    cursor.setAttribute('aria-hidden', 'true')
-    document.body.appendChild(cursor)
-    const mover = (e) => {
-      cursor.style.left = `${e.clientX}px`
-      cursor.style.top = `${e.clientY}px`
-    }
-    const entrar = (e) => {
-      if (e.target.closest('a, button, input, select, textarea, [role="button"], .clicable')) cursor.classList.add('encima')
-    }
-    const salir = () => cursor.classList.remove('encima')
-    window.addEventListener('pointermove', mover, { passive: true })
-    document.addEventListener('pointerover', entrar)
-    document.addEventListener('pointerout', salir)
-    document.documentElement.classList.add('cursor-hueco-activo')
-    return () => {
-      window.removeEventListener('pointermove', mover)
-      document.removeEventListener('pointerover', entrar)
-      document.removeEventListener('pointerout', salir)
-      document.documentElement.classList.remove('cursor-hueco-activo')
-      cursor.remove()
-    }
-  }, [])
-  return null
-}

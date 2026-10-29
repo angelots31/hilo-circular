@@ -18,7 +18,6 @@ function Corazon({ activo, onClick }) {
       className="prenda-corazon clicable"
       aria-label={activo ? 'Quitar de favoritos' : 'Añadir a favoritos'}
       aria-pressed={activo}
-      data-cursor={activo ? 'quitar' : 'guardar'}
       onClick={(e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -52,7 +51,7 @@ export default function PrendaCard({ prenda, retraso = 0, onEliminar, acciones }
       onFocus={() => setActivo(true)}
       onBlur={() => setActivo(false)}
     >
-      <a href={href(`/prenda/${prenda.id}`)} data-cursor="ver prenda" aria-label={`Ver ${prenda.titulo}`}>
+      <a href={href(`/prenda/${prenda.id}`)} aria-label={`Ver ${prenda.titulo}`}>
         <div className="prenda-arte-marco">
           <CarruselPrenda prenda={prenda} activo={activo} />
           <div className="prenda-etiquetas">

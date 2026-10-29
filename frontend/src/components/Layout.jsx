@@ -77,7 +77,7 @@ export function Encabezado() {
 
   return (
     <header className={`cabecera ${pegada ? 'pegada' : ''}`}>
-      <a className="marca clicable" href={href('/')} data-cursor="inicio">
+      <a className="marca clicable" href={href('/')}>
         <img className="marca-logo" src="/icono-redondo.png" alt="" width="42" height="42" decoding="async" />
         <span className="marca-texto">
           <b>Hilo Circular</b>
@@ -98,7 +98,7 @@ export function Encabezado() {
           className="campana clicable"
           aria-label={`Notificaciones: ${sinLeer} sin leer`}
           onClick={() => setAviso((v) => !v)}
-          data-cursor="avisos"
+         
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6Z" fill="none" stroke="currentColor" strokeWidth="1.8" />
@@ -131,7 +131,7 @@ export function Encabezado() {
 
         {usuario ? (
           <div className="sesion">
-            <button className="sesion-boton clicable" onClick={() => setMenu((v) => !v)} aria-expanded={menu} data-cursor="mi cuenta">
+            <button className="sesion-boton clicable" onClick={() => setMenu((v) => !v)} aria-expanded={menu}>
               <Avatar nombre={usuario.nombre} tamano={34} />
               <span className="sesion-nombre">{usuario.nombre.split(' ')[0]}</span>
               <svg viewBox="0 0 24 24" className="chev" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
