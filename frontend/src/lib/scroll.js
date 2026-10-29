@@ -46,3 +46,14 @@ export function subirAlInicio() {
   if (lenis) lenis.scrollTo(0, { immediate: true })
   else scrollTo({ top: 0, behavior: 'auto' })
 }
+
+/**
+ * Lleva a un elemento por su id. Lenis y el `scroll-padding-top` de la raíz ya
+ * dejan el aire necesario para la cabecera fija; no hace falta otro desfase.
+ */
+export function irAElemento(id) {
+  const elemento = document.getElementById(id)
+  if (!elemento) return
+  if (lenis) lenis.scrollTo(elemento)
+  else elemento.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}

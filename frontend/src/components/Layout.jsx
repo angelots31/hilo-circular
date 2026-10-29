@@ -85,11 +85,9 @@ export function Encabezado() {
         </span>
       </a>
 
-      {path === '/conciencia' ? (
-        <nav className="nav-principal" aria-label="Volver al inicio">
-          <a href={href('/')} className="volver-inicio">← Volver al inicio</a>
-        </nav>
-      ) : (
+      {/* La página del QR es una llegada aparte: sin el menú completo, para
+          dejar claro cómo volver a la web. */}
+      {path !== '/conciencia' && (
         <nav className="nav-principal" aria-label="Navegación principal">
           {ENLACES.map((e) => (
             <a key={e.to} href={href(e.to)} className={path === e.to ? 'activo' : ''}>
@@ -100,11 +98,6 @@ export function Encabezado() {
       )}
 
       <div className="nav-acciones">
-        {/* En móvil la navegación principal se oculta: el regreso queda a mano. */}
-        {path === '/conciencia' && (
-          <a className="volver-inicio-movil clicable" href={href('/')} aria-label="Volver al inicio">← Inicio</a>
-        )}
-
         {usuario && <button
           className="campana clicable"
           aria-label={`Notificaciones: ${sinLeer} sin leer`}
@@ -138,6 +131,15 @@ export function Encabezado() {
             </ul>
             <a className="panel-avisos-pie" href={href(esAdmin ? '/admin' : '/panel')}>{esAdmin ? 'Ver panel de administración →' : 'Ver todo en mi panel →'}</a>
           </div>
+        )}
+
+        {/* En la página del QR el regreso queda junto a «Entrar» / la cuenta. */}
+        {path === '/conciencia' && (
+          <a className="volver-web clicable" href={href('/')} aria-label="Volver a la web">
+            <span aria-hidden="true">←</span>
+            <span className="volver-web-largo">Volver a la web</span>
+            <span className="volver-web-corto">Inicio</span>
+          </a>
         )}
 
         {usuario ? (
