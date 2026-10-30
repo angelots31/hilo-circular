@@ -2928,3 +2928,221 @@ button.prenda-mini:hover { transform: translateY(-2px); border-color: var(--lava
   .boton-qr,
   .boton-qr-texto { transition: none; }
 }
+
+/* =========================================================================
+   Sexta pasada: barras de scroll, detalle de prenda, responsive y animaciones
+   ========================================================================= */
+
+/* ----------------------------------------------- Barras de scroll del sitio */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(104, 114, 170, 0.75) rgba(226, 222, 234, 0.5);
+}
+
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: rgba(226, 222, 234, 0.45); border-radius: 999px; }
+::-webkit-scrollbar-track:hover { background: rgba(226, 222, 234, 0.75); }
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(160deg, #98a0cf, var(--lavanda) 48%, var(--ciruela)) padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(160deg, var(--lavanda), var(--ciruela)) padding-box; }
+::-webkit-scrollbar-thumb:active { background: var(--ciruela) padding-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* Los contenedores con desplazamiento interno usan un pulgar más fino. */
+.modal,
+.tabla-envoltorio,
+.nav-movil,
+.panel-lateral,
+.panel-notificaciones,
+.charla,
+.area,
+.miniaturas,
+.panel-costado {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(104, 114, 170, 0.6) transparent;
+  overscroll-behavior: contain;
+}
+.modal::-webkit-scrollbar,
+.tabla-envoltorio::-webkit-scrollbar,
+.nav-movil::-webkit-scrollbar,
+.panel-lateral::-webkit-scrollbar,
+.panel-notificaciones::-webkit-scrollbar,
+.charla::-webkit-scrollbar,
+.area::-webkit-scrollbar,
+.miniaturas::-webkit-scrollbar { width: 9px; height: 9px; }
+.modal::-webkit-scrollbar-thumb,
+.tabla-envoltorio::-webkit-scrollbar-thumb,
+.nav-movil::-webkit-scrollbar-thumb,
+.panel-lateral::-webkit-scrollbar-thumb,
+.panel-notificaciones::-webkit-scrollbar-thumb,
+.charla::-webkit-scrollbar-thumb,
+.area::-webkit-scrollbar-thumb,
+.miniaturas::-webkit-scrollbar-thumb { border-width: 2px; }
+.modal::-webkit-scrollbar-track,
+.tabla-envoltorio::-webkit-scrollbar-track,
+.nav-movil::-webkit-scrollbar-track,
+.panel-lateral::-webkit-scrollbar-track,
+.panel-notificaciones::-webkit-scrollbar-track,
+.charla::-webkit-scrollbar-track,
+.area::-webkit-scrollbar-track,
+.miniaturas::-webkit-scrollbar-track { background: transparent; }
+
+/* --------------------------------------- Detalle de prenda dentro del modal */
+
+.modal { max-height: min(88vh, 88dvh); max-width: 100%; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.modal-cabeza { min-width: 0; }
+.modal-cabeza h3 { overflow-wrap: anywhere; }
+.modal-cuerpo { min-width: 0; }
+
+.detalle-prenda-modal { grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr); }
+.detalle-prenda-modal > *,
+.detalle-prenda-galeria,
+.detalle-prenda-info { min-width: 0; }
+.detalle-prenda-galeria { align-content: start; }
+
+/* La foto nunca crece más allá de su marco: se recorta por contención y deja
+   libre la columna de datos, aunque la imagen original sea enorme. */
+.detalle-prenda-foto {
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 4 / 4.2;
+  max-height: min(52vh, 26rem);
+}
+.detalle-prenda-foto .prenda-foto {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background: radial-gradient(circle at 50% 38%, #fff, var(--niebla));
+}
+.detalle-prenda-foto .prenda-vista { max-width: 100%; max-height: 100%; }
+
+/* Las miniaturas se acomodan en varias filas en vez de invadir el texto. */
+.detalle-prenda-galeria .miniaturas {
+  margin-top: 0;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  overflow: visible;
+}
+.detalle-prenda-galeria .miniatura {
+  width: clamp(3.1rem, 16vw, 4.25rem);
+  height: clamp(3.1rem, 16vw, 4.25rem);
+  flex: 0 0 auto;
+  animation: entrar-arriba 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.detalle-prenda-galeria .miniatura:nth-child(2) { animation-delay: 0.04s; }
+.detalle-prenda-galeria .miniatura:nth-child(3) { animation-delay: 0.08s; }
+.detalle-prenda-galeria .miniatura:nth-child(4) { animation-delay: 0.12s; }
+.detalle-prenda-galeria .miniatura:nth-child(5) { animation-delay: 0.16s; }
+.detalle-prenda-galeria .miniatura:nth-child(6) { animation-delay: 0.2s; }
+
+/* ------------------------------------------------- Responsive del detalle */
+
+/* Hasta tablet el detalle se apila: una columna ancha para foto y datos. */
+@media (max-width: 900px) {
+  .detalle-prenda-modal { grid-template-columns: minmax(0, 1fr); gap: 1.1rem; }
+  .detalle-prenda-foto {
+    height: auto;
+    aspect-ratio: 4 / 3.4;
+    max-height: min(38vh, 21rem);
+  }
+}
+
+@media (max-width: 560px) {
+  .detalle-prenda-foto { aspect-ratio: 4 / 3.6; max-height: min(32vh, 17rem); }
+  .detalle-prenda-valor { font-size: 1.4rem; }
+  .detalle-prenda-dueno .etiqueta { margin-left: 0; }
+  /* El pie del modal reparte los botones en dos columnas legibles. */
+  .modal-pie { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+  .modal-pie .boton { width: 100%; min-width: 0; padding-inline: 0.8rem; font-size: 0.85rem; }
+}
+
+@media (max-width: 380px) {
+  .detalle-prenda-galeria .miniatura { width: 2.9rem; height: 2.9rem; }
+  .modal-pie { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ------------------------------------------------------- Microinteracciones */
+
+.panel-tarjeta,
+.dato,
+.nav-principal a {
+  transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.34s ease, border-color 0.34s ease, background 0.25s ease, color 0.25s ease;
+}
+
+@media (hover: hover) {
+  .panel-tarjeta:hover,
+  .panel-app .panel-tarjeta:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sombra-suave);
+    border-color: rgba(104, 114, 170, 0.28);
+  }
+  .dato:hover { transform: translateY(-3px); box-shadow: var(--sombra-suave); }
+  .nav-principal a:hover { transform: translateY(-1px); }
+}
+
+.modal-qr { animation: entrar-arriba 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.panel-notificaciones { animation: entrar-arriba 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.miniatura:hover { transform: translateY(-3px) scale(1.04); }
+.modal-cerrar:active { transform: scale(0.92) rotate(90deg); }
+
+/* -------------------------------------------------------------------------
+   Séptima pasada: el detalle de prenda no deja que el pie tape el contenido
+   ------------------------------------------------------------------------- */
+
+/* El modal es una columna: cabecera y pie fijos, y solo el cuerpo desplaza.
+   Así los botones de acción nunca se montan sobre la foto ni sobre el texto. */
+.modal-detalle {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.modal-detalle .modal-cabeza { position: static; flex: none; }
+.modal-detalle .modal-cuerpo {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(104, 114, 170, 0.6) transparent;
+}
+.modal-detalle .modal-pie {
+  position: static;
+  flex: none;
+  background: var(--bruma);
+  border-top: 1px solid var(--línea);
+  box-shadow: 0 -14px 26px -24px rgba(45, 33, 50, 0.65);
+}
+
+/* Seis miniaturas caben en una fila en escritorio; en móvil se acomodan solas. */
+.detalle-prenda-galeria .miniatura {
+  width: clamp(3rem, 15vw, 3.5rem);
+  height: clamp(3rem, 15vw, 3.5rem);
+}
+
+@media (max-width: 380px) {
+  .modal-pie { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .modal-pie .boton { padding-inline: 0.5rem; font-size: 0.78rem; }
+}
+
+/* La foto se ancla al marco ya recortado: sin porcentajes que resuelvan contra
+   la altura previa al max-height, la imagen nunca sobresale ni se recorta. */
+.detalle-prenda-foto { position: relative; }
+.detalle-prenda-foto .prenda-foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: contain;
+}
+.detalle-prenda-foto .prenda-vista {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { m } from 'motion/react'
 import { Vista, vistasDe } from './Carrusel.jsx'
 import { Avatar, Boton, Etiqueta, Modal } from './ui.jsx'
 import { useStore } from '../lib/store.jsx'
@@ -27,6 +28,7 @@ export default function DetallePrenda({ prenda, abierto, onCerrar, onChat, accio
       titulo={prenda.titulo}
       descripcion={`${prenda.categoria} · Talla ${prenda.talla} · ${prenda.ciudad}`}
       ancho="54rem"
+      clase="modal-detalle"
       pie={
         <>
           {acciones}
@@ -38,9 +40,15 @@ export default function DetallePrenda({ prenda, abierto, onCerrar, onChat, accio
     >
       <div className="detalle-prenda-modal">
         <div className="detalle-prenda-galeria">
-          <div className="detalle-prenda-foto">
+          <m.div
+            key={vista?.clave ?? indice}
+            className="detalle-prenda-foto"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
+          >
             <Vista vista={vista} prenda={prenda} alt={prenda.titulo} />
-          </div>
+          </m.div>
           {vistas.length > 1 && (
             <div className="miniaturas">
               {vistas.map((v, i) => (

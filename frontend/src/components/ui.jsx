@@ -120,7 +120,7 @@ Area.displayName = 'Area'
 
 let modalesAbiertos = 0
 
-export function Modal({ abierto, onCerrar, titulo, descripcion, children, pie, ancho = '38rem' }) {
+export function Modal({ abierto, onCerrar, titulo, descripcion, children, pie, ancho = '38rem', clase = '' }) {
   useEffect(() => {
     if (!abierto) return undefined
     const onKey = (e) => e.key === 'Escape' && onCerrar?.()
@@ -138,9 +138,17 @@ export function Modal({ abierto, onCerrar, titulo, descripcion, children, pie, a
   return (
     <AnimatePresence>
       {abierto && (
-      <div className="modal-fondo" onClick={onCerrar} role="presentation">
       <m.div
-        className="modal"
+        className="modal-fondo"
+        role="presentation"
+        onClick={onCerrar}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+      >
+      <m.div
+        className={`modal ${clase}`.trim()}
         style={{ '--ancho': ancho }}
         role="dialog"
         aria-modal="true"
@@ -161,7 +169,7 @@ export function Modal({ abierto, onCerrar, titulo, descripcion, children, pie, a
         <div className="modal-cuerpo">{children}</div>
         {pie && <footer className="modal-pie">{pie}</footer>}
       </m.div>
-      </div>
+      </m.div>
       )}
     </AnimatePresence>
   )

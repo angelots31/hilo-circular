@@ -8,10 +8,11 @@ import { nombreMaterial } from '../lib/seed.js'
 /**
  * Botón flotante con el QR de la micropágina de concientización.
  * Se monta una sola vez; el contenido del QR cambia según la prenda o el
- * intercambio que se esté mirando.
+ * intercambio que se esté mirando. El botón flotante es una herramienta del
+ * equipo: la comunidad llega al QR escaneando la etiqueta o el código del pie.
  */
 export function BotonQr() {
-  const { prendas, intercambios, buscarPrenda, avisar } = useStore()
+  const { prendas, intercambios, buscarPrenda, avisar, esAdmin } = useStore()
   const { path, segments, query } = useRoute()
   const [abierto, setAbierto] = useState(false)
   const [qr, setQr] = useState('')
@@ -138,6 +139,9 @@ export function BotonQr() {
 
   return (
     <>
+      {/* Solo administración ve el botón flotante. El resto de la comunidad
+          puede escanear el QR y entrar igual a la micropágina. */}
+      {esAdmin && (
       <button
         ref={botonRef}
         type="button"
@@ -154,6 +158,7 @@ export function BotonQr() {
         </svg>
         <span className="boton-qr-texto">Escanea</span>
       </button>
+      )}
 
       {abierto && (
         <div className="modal-fondo" role="presentation" onClick={() => setAbierto(false)}>
