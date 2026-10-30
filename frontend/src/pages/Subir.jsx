@@ -27,7 +27,7 @@ const PASOS = ['Datos de la prenda', 'Fotos y estado', 'Intercambio y envío', '
 const LIMITE_AUDIO_MB = 15
 
 export default function Subir() {
-  const { usuario, publicarPrenda, avisar, precio } = useStore()
+  const { usuario, publicarPrenda, avisar, precio, valorRef } = useStore()
   const [paso, setPaso] = useState(0)
   const [fotos, setFotos] = useState([])
   const [audio, setAudio] = useState(null)
@@ -258,7 +258,6 @@ export default function Subir() {
                     onClick={() => entradaArchivos.current?.click()}
                     role="button"
                     tabIndex={0}
-                   
                   >
                     <b>Arrastra tus fotos aquí</b>
                     <small>o haz clic para elegirlas desde tu equipo · JPG o PNG</small>
@@ -322,7 +321,7 @@ export default function Subir() {
                       {ESTADOS.map((e) => <option key={e} value={e}>{e}</option>)}
                     </Selector>
                   </Campo>
-                  <Campo etiqueta={`Valor de referencia: ${datos.valor}`} ayuda="Es una referencia, no un precio de venta." id="valor">
+                  <Campo etiqueta={`Valor de referencia: ${valorRef(datos.valor)}`} ayuda="Está en miles de pesos: es una referencia para el intercambio, no un precio de venta." id="valor">
                     <input
                       id="valor"
                       className="control-rango"
@@ -373,14 +372,14 @@ export default function Subir() {
                   <div className="tarjeta" style={{ display: 'grid', gap: '0.6rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
                       <b style={{ fontFamily: 'var(--fuente-titulo)', fontSize: '1.2rem' }}>{datos.titulo || 'Sin título'}</b>
-                      <Etiqueta tono="lavanda">Valor ref. {datos.valor}</Etiqueta>
+                      <Etiqueta tono="lavanda">Valor ref. {valorRef(datos.valor)}</Etiqueta>
                     </div>
                     <p style={{ fontSize: '0.88rem', opacity: 0.8 }}>{datos.descripcion || 'Sin descripción todavía.'}</p>
                     <div className="chips">
                       <Etiqueta tono="neutro">{datos.categoria}</Etiqueta>
                       <Etiqueta tono="neutro">Talla {datos.talla}</Etiqueta>
-                    <Etiqueta tono="neutro">{datos.estado}</Etiqueta>
-                    <Etiqueta tono="neutro">{datos.barrio}</Etiqueta>
+                      <Etiqueta tono="neutro">{datos.estado}</Etiqueta>
+                      <Etiqueta tono="neutro">{datos.barrio}</Etiqueta>
                     </div>
                     <p style={{ fontSize: '0.85rem', opacity: 0.72 }}>
                       {fotos.length} {fotos.length === 1 ? 'foto cargada' : 'fotos cargadas'} · método {datos.metodo}{audio ? ' · con audio explicativo' : ''}
@@ -428,7 +427,7 @@ export default function Subir() {
                     <span>Talla {datos.talla}</span>·<span>{datos.categoria}</span>·<span>{datos.barrio}</span>
                   </p>
                   <div className="prenda-pie">
-                    <span className="prenda-valor">Valor ref. {datos.valor}</span>
+                    <span className="prenda-valor">Valor ref. {valorRef(datos.valor)}</span>
                     <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>{usuario?.nombre}</span>
                   </div>
                 </div>

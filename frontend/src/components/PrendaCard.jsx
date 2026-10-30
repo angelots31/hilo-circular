@@ -37,7 +37,7 @@ function Corazon({ activo, onClick }) {
 }
 
 export default function PrendaCard({ prenda, retraso = 0, onEliminar, acciones }) {
-  const { buscarUsuario, favoritos, alternarFavorito } = useStore()
+  const { buscarUsuario, favoritos, alternarFavorito, valorRef } = useStore()
   const dueno = buscarUsuario(prenda.duenoId)
   const favorito = favoritos.includes(prenda.id)
   const [activo, setActivo] = useState(false)
@@ -81,7 +81,7 @@ export default function PrendaCard({ prenda, retraso = 0, onEliminar, acciones }
           <span>{dueno?.nombre}</span>
         </p>
         <div className="prenda-pie">
-          <span className="prenda-valor">Valor ref. {prenda.valor}</span>
+          <span className="prenda-valor">Valor ref. {valorRef(prenda.valor)}</span>
           {onEliminar ? (
             <button className="boton fantasma sm" onClick={() => onEliminar(prenda.id)}>
               Retirar

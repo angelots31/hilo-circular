@@ -8,7 +8,7 @@ import { BARRIOS, CATEGORIAS, ESTADOS, TALLAS } from '../lib/seed.js'
 const ORDENES = [
   { valor: 'recientes', texto: 'Más recientes' },
   { valor: 'valor', texto: 'Mayor valor de referencia' },
-  { valor: 'likes', texto: 'Las más deseadas' },
+  { valor: 'vistas', texto: 'Más vistas' },
   { valor: 'cercanas', texto: 'Cerca de mi barrio' },
 ]
 
@@ -37,7 +37,7 @@ export default function Catalogo() {
     })
     lista = lista.sort((a, b) => {
       if (orden === 'valor') return b.valor - a.valor
-      if (orden === 'likes') return b.likes - a.likes
+      if (orden === 'vistas') return (b.vistas ?? 0) - (a.vistas ?? 0)
       if (orden === 'cercanas') {
         const mio = usuario?.barrio
         if (!mio) return 0

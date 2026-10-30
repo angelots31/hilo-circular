@@ -8,7 +8,7 @@ import { useStore } from '../lib/store.jsx'
  * fotos en grande, revisar los datos y abrir la publicación o el chat.
  */
 export default function DetallePrenda({ prenda, abierto, onCerrar, onChat, acciones }) {
-  const { buscarUsuario, fecha } = useStore()
+  const { buscarUsuario, fecha, valorRef } = useStore()
   const [indice, setIndice] = useState(0)
   const vistas = vistasDe(prenda)
 
@@ -67,7 +67,7 @@ export default function DetallePrenda({ prenda, abierto, onCerrar, onChat, accio
             {prenda.destacada && <Etiqueta tono="destacada">Destacada</Etiqueta>}
           </div>
 
-          <b className="detalle-prenda-valor">Valor ref. {prenda.valor}</b>
+          <b className="detalle-prenda-valor">Valor ref. {valorRef(prenda.valor)}</b>
           <p className="detalle-prenda-descripcion">{prenda.descripcion || 'Sin descripción registrada.'}</p>
 
           {prenda.audio && (

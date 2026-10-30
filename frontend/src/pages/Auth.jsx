@@ -372,7 +372,6 @@ export default function Auth({ modo = 'entrar' }) {
                   className="auth-admin-boton"
                   onClick={entrarComoAdmin}
                   disabled={enviando}
-                 
                 >
                   <span aria-hidden="true">⚙</span> Entrar con la cuenta de administración
                 </button>

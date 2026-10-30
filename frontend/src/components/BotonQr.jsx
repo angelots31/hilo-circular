@@ -145,7 +145,6 @@ export function BotonQr() {
         onClick={() => abrir(materialesRuta())}
         aria-label="Abrir el código QR de concientización"
         aria-haspopup="dialog"
-       
         title={url}
       >
         <span className="boton-qr-anillo" aria-hidden="true" />

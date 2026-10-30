@@ -102,7 +102,6 @@ export function Encabezado() {
           className="campana clicable"
           aria-label={`Notificaciones: ${sinLeer} sin leer`}
           onClick={() => setAviso((v) => !v)}
-         
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6Z" fill="none" stroke="currentColor" strokeWidth="1.8" />

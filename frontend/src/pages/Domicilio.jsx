@@ -350,7 +350,6 @@ export default function Domicilio() {
         </Campo>
 
         <div className="form-columnas">
-          
           <Campo etiqueta="Método" id="metodo-envio">
             <Selector id="metodo-envio" value={nuevoEnvio.metodo} onChange={(e) => setNuevoEnvio({ ...nuevoEnvio, metodo: e.target.value })}>
               <option value="Domicilio">Domicilio con recolección</option>

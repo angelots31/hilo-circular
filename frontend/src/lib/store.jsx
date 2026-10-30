@@ -109,6 +109,9 @@ export function StoreProvider({ children }) {
       buscarUsuario,
       buscarPrenda,
       precio: (n) => `$${Number(n ?? 0).toLocaleString('es-CO')}`,
+      // El valor de referencia se guarda en miles de pesos (rango 10–150 del
+      // formulario): 78 se lee como $78.000, igual que los costos de envío.
+      valorRef: (n) => `$${Math.round(Number(n ?? 0) * 1000).toLocaleString('es-CO')}`,
       fecha: (iso) => {
         if (!iso) return '—'
         // Acepta tanto 'YYYY-MM-DD' como una fecha ISO completa.

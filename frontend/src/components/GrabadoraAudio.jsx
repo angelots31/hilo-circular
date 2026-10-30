@@ -96,7 +96,6 @@ export default function GrabadoraAudio({ id, onGrabar, avisar, className = 'solt
         type="button"
         id={id}
         className={`${className} grabando`}
-       
         onClick={detener}
       >
         <b><i className="grab-punto" aria-hidden="true" /> Grabando… {reloj(segundos)}</b>

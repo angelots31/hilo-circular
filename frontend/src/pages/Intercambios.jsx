@@ -15,7 +15,7 @@ const TONO = { Pendiente: 'ambar', Aceptado: 'verde', Rechazado: 'rojo', Complet
 
 export default function Intercambios() {
   const {
-    intercambios, prendas, usuario, buscarPrenda, buscarUsuario, responderSolicitud, fecha,
+    intercambios, prendas, usuario, buscarPrenda, buscarUsuario, responderSolicitud, fecha, valorRef,
   } = useStore()
   const { query } = useRoute()
   const [pestana, setPestana] = useState('recibidas')
@@ -36,6 +36,25 @@ export default function Intercambios() {
     if (pestana === 'enviadas') return enviadas
     return completadas
   }, [pestana, recibidas, enviadas, completadas])
+
+  // Cada pestaña vacía explica lo que toca en esa vista.
+  const vacio = {
+    recibidas: {
+      titulo: 'Todavía no tienes solicitudes',
+      texto: 'Cuando alguien quiera una de tus prendas, aparece aquí con la propuesta completa.',
+      accion: <Boton to="/subir">Publicar más prendas</Boton>,
+    },
+    enviadas: {
+      titulo: 'Aún no has enviado solicitudes',
+      texto: 'Explora el catálogo y propón un intercambio por la prenda que te guste.',
+      accion: <Boton to="/catalogo">Explorar el catálogo</Boton>,
+    },
+    completadas: {
+      titulo: 'Aún no has completado un intercambio',
+      texto: 'Cuando cierres un trueque con las dos partes, queda registrado aquí con su reseña.',
+      accion: <Boton to="/catalogo">Explorar el catálogo</Boton>,
+    },
+  }[pestana]
 
   // Una notificación puede abrir directamente la conversación de un intercambio.
   const chatId = query.get('chat')
@@ -85,21 +104,13 @@ export default function Intercambios() {
             className="pestanas-intercambios"
           />
 
-          <div className="rejilla" style={{ marginTop: '1.6rem' }}>
+          <div className="rejilla dos" style={{ marginTop: '1.6rem' }}>
             {lista.length === 0 ? (
               <EstadoVacio
                 pose="duerme"
-                titulo={pestana === 'recibidas' ? 'Todavía no tienes solicitudes' : 'Aún no has enviado solicitudes'}
-                texto={
-                  pestana === 'recibidas'
-                    ? 'Cuando alguien quiera una de tus prendas, aparece aquí con la propuesta completa.'
-                    : 'Explora el catálogo y propón un intercambio por la prenda que te guste.'
-                }
-                accion={
-                  pestana === 'recibidas'
-                    ? <Boton to="/subir">Publicar más prendas</Boton>
-                    : <Boton to="/catalogo">Explorar el catálogo</Boton>
-                }
+                titulo={vacio.titulo}
+                texto={vacio.texto}
+                accion={vacio.accion}
               />
             ) : (
               lista.map((x, i) => {
@@ -140,7 +151,7 @@ export default function Intercambios() {
                       <div className="intercambio-resumen">
                         <div className="chips">
                           <Etiqueta tono={TONO[x.estado] ?? 'neutro'}>{x.estado}</Etiqueta>
-                          <Etiqueta tono="neutro">Ref. {ofrece?.valor ?? '—'} / {pide?.valor ?? '—'}</Etiqueta>
+                          <Etiqueta tono="neutro">Ref. {ofrece ? valorRef(ofrece.valor) : '—'} / {pide ? valorRef(pide.valor) : '—'}</Etiqueta>
                         </div>
                         <p>{ofrece?.titulo ?? 'Prenda ofrecida'} por <b>{pide?.titulo ?? 'prenda solicitada'}</b></p>
                       </div>

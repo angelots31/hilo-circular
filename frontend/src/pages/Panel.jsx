@@ -151,13 +151,12 @@ export default function Panel({ seccion = 'resumen' }) {
                   <article className="panel-tarjeta">
                     <h3>Próximos pasos</h3>
                     <p>Lo que conviene hacer esta semana para mover tu clóset.</p>
-                    <ul className="lista-tareas">
-                      {[
-                        { texto: 'Responder las solicitudes pendientes', hecho: pendientes.length === 0 },
-                        { texto: 'Completar las fotos de tus prendas', hecho: mias.length > 0 },
-                        { texto: 'Dejar la reseña del último intercambio', hecho: misResenas.length > 0 },
-                        { texto: 'Verificar tu identidad', hecho: usuario.verificado },
-                      ].map((t) => (
+                    <ul className="lista-tareas">                        {[
+                          { texto: 'Responder las solicitudes pendientes', hecho: pendientes.length === 0 },
+                          { texto: 'Completar las fotos de tus prendas', hecho: mias.length > 0 && mias.every((p) => p.fotos?.length > 0) },
+                          { texto: 'Dejar la reseña del último intercambio', hecho: resenas.some((r) => r.autorId === usuario.id) },
+                          { texto: 'Verificar tu identidad', hecho: usuario.verificado },
+                        ].map((t) => (
                         <li key={t.texto} className={t.hecho ? 'hecho' : ''}>
                           <span aria-hidden="true">{t.hecho ? '✓' : '○'}</span>
                           {t.texto}
@@ -204,9 +203,9 @@ export default function Panel({ seccion = 'resumen' }) {
                     <h3>Impacto circular</h3>
                     <p>Lo que has aportado a la comunidad.</p>
                     <div className="chips">
-                      <Etiqueta tono="verde">{usuario.intercambios * 3} kg de ropa reutilizada</Etiqueta>
-                      <Etiqueta tono="lavanda">{usuario.intercambios} prendas con nueva vida</Etiqueta>
-                      <Etiqueta tono="rosa">{Math.round(usuario.intercambios * 1.4)} envíos con empaque reutilizado</Etiqueta>
+                      <Etiqueta tono="verde">{usuario.intercambios} intercambios completados</Etiqueta>
+                      <Etiqueta tono="lavanda">{misResenas.length} {misResenas.length === 1 ? 'reseña recibida' : 'reseñas recibidas'}</Etiqueta>
+                      <Etiqueta tono="rosa">{misPedidos.length} {misPedidos.length === 1 ? 'envío coordinado' : 'envíos coordinados'}</Etiqueta>
                     </div>
                     <div style={{ display: 'grid', placeItems: 'center', marginTop: '1rem' }}>
                       <Mascot pose="duerme" style={{ width: 'min(190px, 46vw)' }} />
@@ -553,7 +552,7 @@ export default function Panel({ seccion = 'resumen' }) {
                   <div style={{ display: 'grid', gap: '1.2rem' }}>
                     <div className="panel-tarjeta">
                       <h3>Notificaciones</h3>
-                      <p>Elige qué novedades quieres recibir por correo.</p>
+                      <p>Elige qué novedades quieres ver en tu panel.</p>
                       <div style={{ display: 'grid', gap: '0.6rem' }}>
                         {[
                           ['solicitudes', 'Nuevas solicitudes de intercambio'],
@@ -572,7 +571,7 @@ export default function Panel({ seccion = 'resumen' }) {
                         ))}
                       </div>
                       <div style={{ marginTop: '1rem' }}>
-                        <Boton tamano="sm" onClick={() => { localStorage.setItem(`hilo-preferencias-${usuario.id}`, JSON.stringify(preferencias)); avisar('Preferencias de notificación guardadas en este dispositivo.', 'ok') }}>Guardar preferencias</Boton>
+                        <Boton tamano="sm" onClick={() => { try { localStorage.setItem(`hilo-preferencias-${usuario.id}`, JSON.stringify(preferencias)); avisar('Preferencias de notificación guardadas en este dispositivo.', 'ok') } catch { avisar('Tu navegador bloquea el almacenamiento local: la preferencia vale solo para esta sesión.', 'aviso') } }}>Guardar preferencias</Boton>
                       </div>
                     </div>
 

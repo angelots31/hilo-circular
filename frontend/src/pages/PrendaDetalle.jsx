@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PrendaMini from '../components/PrendaMini.jsx'
 import { Vista, vistasDe } from '../components/Carrusel.jsx'
 import Mascot from '../components/Mascot.jsx'
@@ -11,12 +11,18 @@ import { nombreMaterial } from '../lib/seed.js'
 
 export default function PrendaDetalle({ id }) {
   const [vistaIdx, setVistaIdx] = useState(0)
-  const { prendas, usuarios, resenas, usuario, buscarPrenda, buscarUsuario, alternarFavorito, favoritos, solicitar, avisar, fecha } = useStore()
+  const { prendas, usuarios, resenas, usuario, buscarPrenda, buscarUsuario, alternarFavorito, favoritos, solicitar, avisar, fecha, valorRef, registrarVista } = useStore()
   const prenda = buscarPrenda(id)
   const vistas = vistasDe(prenda)
   const [abierto, setAbierto] = useState(false)
   const [ofrecida, setOfrecida] = useState('')
   const [mensaje, setMensaje] = useState('')
+
+  // Cada apertura de la ficha suma una visita real: es el dato que usan el
+  // catálogo («Más vistas») y la curaduría del panel de administración.
+  useEffect(() => {
+    if (id) registrarVista(id)
+  }, [id])
 
   if (!prenda) {
     return (
@@ -128,7 +134,7 @@ export default function PrendaDetalle({ id }) {
               )}
 
               <div className="detalle-precio">
-                <b>Valor ref. {prenda.valor}</b>
+                <b>Valor ref. {valorRef(prenda.valor)}</b>
                 <span style={{ opacity: 0.7 }}>valor de referencia para el intercambio</span>
               </div>
 
@@ -243,7 +249,7 @@ export default function PrendaDetalle({ id }) {
           <PrendaMini prenda={prenda} tamano="md" />
           <div>
             <b style={{ fontFamily: 'var(--fuente-titulo)' }}>{prenda.titulo}</b>
-            <p style={{ fontSize: '0.85rem', opacity: 0.72 }}>Valor ref. {prenda.valor} · Talla {prenda.talla}</p>
+            <p style={{ fontSize: '0.85rem', opacity: 0.72 }}>Valor ref. {valorRef(prenda.valor)} · Talla {prenda.talla}</p>
           </div>
         </div>
 
@@ -258,7 +264,7 @@ export default function PrendaDetalle({ id }) {
             <Selector id="ofrecer" value={ofrecida} onChange={(e) => setOfrecida(e.target.value)}>
               <option value="">Elige una prenda de tu clóset</option>
               {mias.map((p) => (
-                <option key={p.id} value={p.id}>{p.titulo} · Valor ref. {p.valor}</option>
+                <option key={p.id} value={p.id}>{p.titulo} · Valor ref. {valorRef(p.valor)}</option>
               ))}
             </Selector>
           </Campo>

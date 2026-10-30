@@ -16,7 +16,15 @@ export function activarScrollSuave() {
   import('lenis')
     .then(({ default: Lenis }) => {
       if (cancelado) return
-      lenis = new Lenis({ duration: 1.05, smoothWheel: true, wheelMultiplier: 0.9 })
+      // `allowNestedScroll` deja que la rueda mueva primero los contenedores
+      // internos con overflow (modales, índice de la wiki, tablas del panel)
+      // en vez de secuestrarla para la página.
+      lenis = new Lenis({
+        duration: 1.05,
+        smoothWheel: true,
+        wheelMultiplier: 0.9,
+        allowNestedScroll: true,
+      })
       const bucle = (tiempo) => {
         lenis?.raf(tiempo)
         frame = requestAnimationFrame(bucle)

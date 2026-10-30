@@ -31,7 +31,7 @@ const CLAVES_GRAFICA = [
 export default function Admin({ seccion = 'resumen' }) {
   const {
     usuario, prendas, usuarios, pedidos, resenas, intercambios, reportes, buscarUsuario, buscarPrenda,
-    fecha, precio, destacar, eliminarPrenda, alternarDisponible, moverPedido, resolverReporte,
+    fecha, precio, valorRef, destacar, eliminarPrenda, alternarDisponible, moverPedido, resolverReporte,
     marcarResena, suspenderUsuario, verificarUsuario, avisar, importarPrendas, notificaciones, escaneosQr,
   } = useStore()
 
@@ -46,10 +46,6 @@ export default function Admin({ seccion = 'resumen' }) {
   const [filtroResenas, setFiltroResenas] = useState('todas')
   const [filtroReportes, setFiltroReportes] = useState('abiertos')
   const [detallePrenda, setDetallePrenda] = useState(null)
-  const [config, setConfig] = useState(() => {
-    const base = { verificacionObligatoria: false, envioGratisPunto: true, moderacionAuto: true, limitePublicaciones: '20' }
-    try { return { ...base, ...JSON.parse(localStorage.getItem('hilo-admin-config') || '{}') } } catch { return base }
-  })
 
   const cambiar = (valor) => {
     setVista(valor)
@@ -290,7 +286,7 @@ export default function Admin({ seccion = 'resumen' }) {
                     <input id="admin-importar-prendas-csv" className="admin-input-archivo" type="file" accept=".csv,text/csv" onChange={cargarCSVPrendas} />
                     <Boton variante="fantasma" onClick={() => descargarCSV('hilo-circular-catalogo', ['ID', 'Prenda', 'Dueño', 'Categoría', 'Valor estimado', 'Ciudad', 'Calidad', 'Disponibilidad', 'Destacada', 'Talla', 'Marca', 'Color', 'Descripción'], prendasFiltradas.map((p) => [p.id, p.titulo, buscarUsuario(p.duenoId)?.nombre, p.categoria, p.valor, 'Medellín', p.estado, p.disponible ? 'Disponible' : 'Pausada', p.destacada ? 'Sí' : 'No', p.talla, p.marca, p.color, p.descripcion]))}>Exportar CSV</Boton>
                     <Boton variante="fantasma" onClick={() => descargarPDF('hilo-circular-catalogo', 'Catálogo de prendas · Medellín', ['ID', 'Prenda', 'Dueño', 'Categoría', 'Talla', 'Valor', 'Disponibilidad', 'Destacada', 'Ciudad'], filasPDFPrendas(prendasFiltradas))}>Descargar PDF</Boton>
-                    <Boton onClick={() => { const candidatas = prendas.filter((p) => p.disponible).sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0)).slice(0, 3); const seleccionadas = new Set(candidatas.map((p) => p.id)); prendas.forEach((p) => { if (Boolean(p.destacada) !== seleccionadas.has(p.id)) destacar(p.id) }); avisar(`Curaduría aplicada: ${candidatas.length} prendas disponibles quedaron destacadas por actividad.`, 'ok') }}>Aplicar curaduría</Boton>
+                    <Boton onClick={() => { const candidatas = prendas.filter((p) => p.disponible).sort((a, b) => (b.vistas ?? 0) - (a.vistas ?? 0)).slice(0, 3); const seleccionadas = new Set(candidatas.map((p) => p.id)); prendas.forEach((p) => { if (Boolean(p.destacada) !== seleccionadas.has(p.id)) destacar(p.id) }); avisar(`Curaduría aplicada: ${candidatas.length} prendas disponibles quedaron destacadas por número de visitas.`, 'ok') }}>Aplicar curaduría</Boton>
                   </div>
                 </div>
 
@@ -339,7 +335,7 @@ export default function Admin({ seccion = 'resumen' }) {
                             </td>
                             <td>{buscarUsuario(p.duenoId)?.nombre}</td>
                             <td>{p.categoria}</td>
-                            <td>{p.valor}</td>
+                            <td>{valorRef(p.valor)}</td>
                             <td>
                               <div className="chips">
                                 <Etiqueta tono={p.disponible ? 'verde' : 'neutro'}>{p.disponible ? 'Disponible' : 'Pausada'}</Etiqueta>
@@ -651,14 +647,16 @@ export default function Admin({ seccion = 'resumen' }) {
                         return true
                       }).map((r) => (
                         <tr key={r.id}>
-                          <td><b>{r.id.toUpperCase()}</b></td>
+                          <td><b>#{String(r.id).slice(0, 6).toUpperCase()}</b></td>
                           <td>{r.tipo}</td>
                           <td>{r.motivo}</td>
                           <td>
-                            {r.prendaId && buscarPrenda(r.prendaId)?.titulo}
-                            {r.usuarioId && buscarUsuario(r.usuarioId)?.nombre}
-                            {r.resenaId && `Reseña ${r.resenaId.toUpperCase()}`}
-                            {r.pedidoId && `Envío ${r.pedidoId.toUpperCase()}`}
+                            {[
+                              r.prendaId && buscarPrenda(r.prendaId)?.titulo,
+                              r.usuarioId && buscarUsuario(r.usuarioId)?.nombre,
+                              r.resenaId && `Reseña ${String(r.resenaId).slice(0, 6).toUpperCase()}`,
+                              r.pedidoId && `Envío ${String(r.pedidoId).slice(0, 6).toUpperCase()}`,
+                            ].filter(Boolean).join(' · ') || '—'}
                           </td>
                           <td>{fecha(r.fecha)}</td>
                           <td><Etiqueta tono={r.estado === 'Resuelto' ? 'verde' : r.estado === 'Escalado' ? 'lavanda' : 'ambar'}>{r.estado}</Etiqueta></td>
@@ -667,7 +665,7 @@ export default function Admin({ seccion = 'resumen' }) {
                               <Boton className="mini" disabled={r.estado === 'Resuelto'} onClick={() => resolverReporte(r.id, 'Resuelto', 'Caso resuelto y partes notificadas.')}>
                                 Resolver
                               </Boton>
-                              <Boton className="mini" variante="fantasma" disabled={r.estado === 'Escalado' || r.estado === 'Resuelto'} onClick={() => resolverReporte(r.id, 'Escalado', 'Caso escalado al comité de moderación.')}> 
+                              <Boton className="mini" variante="fantasma" disabled={r.estado === 'Escalado' || r.estado === 'Resuelto'} onClick={() => resolverReporte(r.id, 'Escalado', 'Caso escalado al comité de moderación.')}>
                                 {r.estado === 'Escalado' ? 'Escalado' : 'Escalar'}
                               </Boton>
                             </div>
@@ -706,37 +704,31 @@ export default function Admin({ seccion = 'resumen' }) {
                     <h2 style={{ fontSize: '1.7rem' }}>Configuración de la plataforma</h2>
                     <p>Parámetros generales del intercambio y la moderación.</p>
                   </div>
-                  <Boton onClick={() => { localStorage.setItem('hilo-admin-config', JSON.stringify(config)); avisar('Configuración guardada en este dispositivo.', 'ok') }}>Guardar cambios</Boton>
                 </div>
 
                 <div className="rejilla dos" style={{ alignItems: 'start' }}>
                   <div className="tarjeta-form">
-                    <h3 style={{ fontSize: '1.2rem' }}>Reglas del intercambio</h3>
-                    {[
-                      ['verificacionObligatoria', 'Exigir verificación de identidad para publicar'],
-                      ['envioGratisPunto', 'Envío sin costo a puntos aliados'],
-                      ['moderacionAuto', 'Revisión automática de reseñas antes de publicar'],
-                    ].map(([clave, texto]) => (
-                      <label className="campo-terminos" key={clave}>
-                        <input
-                          type="checkbox"
-                          checked={config[clave]}
-                          onChange={(e) => setConfig({ ...config, [clave]: e.target.checked })}
-                        />
-                        <span>{texto}</span>
-                      </label>
-                    ))}
-                    <Campo etiqueta="Límite de publicaciones activas por persona" id="limite">
-                      <Selector id="limite" value={config.limitePublicaciones} onChange={(e) => setConfig({ ...config, limitePublicaciones: e.target.value })}>
-                        {['10', '20', '30', 'Sin límite'].map((v) => <option key={v} value={v}>{v}</option>)}
-                      </Selector>
-                    </Campo>
+                    <h3 style={{ fontSize: '1.2rem' }}>Reglas vigentes</h3>
+                    <p style={{ fontSize: '0.9rem', opacity: 0.75 }}>
+                      Ya están activas en la API y se aplican igual para todas las cuentas.
+                    </p>
+                    <ul className="lista-tareas" style={{ marginTop: '0.9rem' }}>
+                      {[
+                        'Título mínimo de 6 caracteres y descripción de 20.',
+                        'Hasta 6 fotos y 4 materiales de la wiki por prenda.',
+                        'Reseñas solo después de un intercambio aceptado.',
+                        'La verificación de identidad la revisa el equipo caso por caso.',
+                        'Cinco intentos fallidos de acceso bloquean la cuenta 15 minutos.',
+                      ].map((t) => (
+                        <li key={t} className="hecho"><span aria-hidden="true">✓</span>{t}</li>
+                      ))}
+                    </ul>
                   </div>
 
                   <div style={{ display: 'grid', gap: '1.2rem' }}>
                     <div className="panel-tarjeta">
                       <h3>Ciudades y cobertura</h3>
-                      <p>Activa o desactiva la operación logística por ciudad.</p>
+                      <p>La operación logística está limitada a esta ciudad.</p>
                       <div className="chips">
                         <Etiqueta tono="lavanda">Medellín</Etiqueta>
                       </div>

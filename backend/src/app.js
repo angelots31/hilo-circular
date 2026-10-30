@@ -34,9 +34,11 @@ export function crearApp() {
     origin: (origin, cb) => {
       // Sin origen (curl/Postman), listado en CORS_ORIGIN, *.vercel.app o
       // cualquier localhost/127.0.0.1 (el puerto de Vite puede variar).
+      // Todo lo demás se bloquea: con CORS_ORIGIN vacío no se abre la API
+      // a cualquier sitio, solo a los orrones de arriba.
       const local = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin || '')
       if (!origin || local || origenes.includes(origin) || /\.vercel\.app$/.test(safeHost(origin))) return cb(null, true)
-      cb(null, origenes.length === 0)
+      cb(null, false)
     },
   }))
   app.use(express.json({ limit: '2mb' }))

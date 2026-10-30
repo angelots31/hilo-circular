@@ -97,7 +97,7 @@ export default function Resenas() {
             </div>
             <div style={{ display: 'grid', gap: '0.6rem' }}>
               <Etiqueta tono="verde">Solo tras un intercambio aceptado</Etiqueta>
-              <Etiqueta tono="neutro">Texto revisado antes de publicar</Etiqueta>
+              <Etiqueta tono="neutro">Moderación por reportes</Etiqueta>
               <Etiqueta tono="ambar">Una respuesta por persona</Etiqueta>
               <Boton
                 variante="texto"
@@ -221,9 +221,10 @@ export default function Resenas() {
             <div>
               <h2 style={{ fontSize: 'clamp(1.9rem, 4vw, 3rem)' }}>¿Cómo cuidamos las reseñas?</h2>
               <p style={{ marginTop: '1rem', maxWidth: '34rem' }}>
-                Solo se puede calificar después de un intercambio real, el texto pasa por revisión automática y cada
-                persona puede responder una vez. La evidencia visible —fotos del antes y el después, estado real de la
-                prenda— pesa más que cualquier promesa de sostenibilidad.
+                Solo se puede calificar después de un intercambio real, cualquier persona puede reportar una reseña
+                desde un clic y el equipo la revisa desde su panel, y cada persona puede responder una vez. La evidencia
+                visible —fotos del antes y el después, estado real de la prenda— pesa más que cualquier promesa de
+                sostenibilidad.
               </p>
               <div className="chips" style={{ marginTop: '1.4rem' }}>
                 <Etiqueta tono="claro">Solo tras un intercambio</Etiqueta>

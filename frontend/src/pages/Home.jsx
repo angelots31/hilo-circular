@@ -8,8 +8,13 @@ const DESTELLO = 'M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 
 
 export default function Home() {
   const { prendas, usuario } = useStore()
-  const destacadas = prendas.filter((p) => p.destacada && p.disponible).slice(0, 3)
-  const ultimas = [...prendas].sort((a, b) => (a.creada < b.creada ? 1 : -1)).slice(0, 6)
+  // Las destacadas no se repiten en «Recién llegadas»: cada prenda aparece
+  // una sola vez en la portada.
+  const ordenadas = [...prendas].sort((a, b) => (a.creada < b.creada ? 1 : -1))
+  const destacadas = ordenadas.filter((p) => p.destacada && p.disponible).slice(0, 3)
+  const principales = destacadas.length ? destacadas : ordenadas.slice(0, 3)
+  const enPrincipales = new Set(principales.map((p) => p.id))
+  const ultimas = ordenadas.filter((p) => !enPrincipales.has(p.id)).slice(0, 6)
 
   return (
     <>
@@ -106,7 +111,7 @@ export default function Home() {
           ) : (
             <>
               <div className="catalogo-rejilla">
-                {(destacadas.length ? destacadas : ultimas.slice(0, 3)).map((p, i) => (
+                {principales.map((p, i) => (
                   <Aparece key={p.id} retraso={i * 80}>
                     <PrendaCard prenda={p} />
                   </Aparece>
